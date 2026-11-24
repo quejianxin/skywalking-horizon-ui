@@ -59,6 +59,12 @@ const AI_OAI: AiConfig = {
   region: '',
   baseUrl: 'https://gateway/v1',
 };
+const AI_ANTHROPIC: AiConfig = {
+  ...AI_BEDROCK,
+  provider: 'anthropic',
+  region: '',
+  baseUrl: '',
+};
 
 describe('ai config schema', () => {
   it('defaults to openai-compatible + feature OFF when the block is omitted', () => {
@@ -76,9 +82,10 @@ describe('ai config schema', () => {
     });
   });
 
-  it('rejects a provider outside {openai-compatible, bedrock}', () => {
-    expect(() => configSchema.parse({ ai: { provider: 'anthropic' } })).toThrow();
+  it('rejects a provider outside {openai-compatible, bedrock, anthropic}', () => {
     expect(() => configSchema.parse({ ai: { provider: 'gemini' } })).toThrow();
+    expect(() => configSchema.parse({ ai: { provider: 'azure' } })).toThrow();
+    expect(configSchema.parse({ ai: { provider: 'anthropic' } }).ai.provider).toBe('anthropic');
   });
 });
 
@@ -97,6 +104,12 @@ describe('centralCredentialsComplete', () => {
   it('openai-compatible additionally needs baseUrl', () => {
     expect(centralCredentialsComplete(AI_OAI)).toBe(true);
     expect(centralCredentialsComplete({ ...AI_OAI, baseUrl: '' })).toBe(false);
+  });
+
+  it('anthropic needs model + apiKey; the base URL is optional', () => {
+    expect(centralCredentialsComplete(AI_ANTHROPIC)).toBe(true);
+    expect(centralCredentialsComplete({ ...AI_ANTHROPIC, apiKey: '' })).toBe(false);
+    expect(centralCredentialsComplete({ ...AI_ANTHROPIC, model: '' })).toBe(false);
   });
 });
 
@@ -139,12 +152,14 @@ describe('buildChatModel', () => {
     expect(() => buildChatModel(ok({ baseUrl: undefined }))).toThrow(/baseUrl/);
     expect(() => buildChatModel(ok({ apiKey: '' }))).toThrow(/apiKey/);
     expect(() => buildChatModel(ok({ provider: 'bedrock', apiKey: '' }))).toThrow(/apiKey/);
+    expect(() => buildChatModel(ok({ provider: 'anthropic', apiKey: '' }))).toThrow(/apiKey/);
   });
 
   it('constructs a tool-bindable model for each provider (no network)', () => {
     for (const creds of [
       ok({ provider: 'openai-compatible' }),
       ok({ provider: 'bedrock', region: 'us-west-2' }),
+      ok({ provider: 'anthropic', baseUrl: undefined }),
     ]) {
       const model = buildChatModel(creds);
       expect(typeof model.bindTools).toBe('function');

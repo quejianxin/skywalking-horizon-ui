@@ -3674,7 +3674,6 @@
   "Saved in this page": "이 페이지에서 저장됨",
   "From environment variables": "환경 변수에서",
   "Enable the AI assistant": "AI 어시스턴트 사용",
-  "openai-compatible covers OpenAI, DeepSeek, local models and gateways. Choose bedrock only for Amazon Bedrock.": "openai-compatible은 OpenAI, DeepSeek, 로컬 모델, 게이트웨이를 지원합니다. Amazon Bedrock에만 bedrock을 선택하세요.",
   "e.g. deepseek-chat or a Bedrock inference-profile id": "예: deepseek-chat 또는 Bedrock 추론 프로필 ID",
   "A model id is required when the assistant is enabled.": "어시스턴트를 사용할 때는 모델 ID가 필요합니다.",
   "Base URL": "기본 URL",
@@ -3694,5 +3693,10 @@
   "The API key is stored on the server and is never shown again. Only users with write permission can change these settings.": "API 키는 서버에 저장되며 다시 표시되지 않습니다. 쓰기 권한이 있는 사용자만 이 설정을 변경할 수 있습니다.",
   "AI assistant settings": "AI 어시스턴트 설정",
   "See the AI assistant settings": "AI 어시스턴트 설정 보기",
-  "Change the AI assistant provider, model and API key": "AI 어시스턴트의 제공자, 모델, API 키 변경"
+  "Change the AI assistant provider, model and API key": "AI 어시스턴트의 제공자, 모델, API 키 변경",
+  "openai-compatible covers OpenAI, DeepSeek, local models and gateways. Choose bedrock for Amazon Bedrock or anthropic for the Claude API.": "openai-compatible은 OpenAI, DeepSeek, 로컬 모델, 게이트웨이를 지원합니다. Amazon Bedrock은 bedrock, Claude API는 anthropic을 선택하세요.",
+  "Not saved yet": "아직 저장되지 않음",
+  "e.g. claude-sonnet-4-5": "e.g. claude-sonnet-4-5",
+  "Leave blank to call the official Anthropic API. Enter a base URL only for an approved gateway.": "비워 두면 Anthropic 공식 API를 호출합니다. 승인된 게이트웨이를 쓸 때만 베이스 URL을 입력하세요.",
+  "For Anthropic, use an API key from console.anthropic.com (sk-ant-…).": "Anthropic은 console.anthropic.com의 API 키(sk-ant-…)를 사용합니다."
 }

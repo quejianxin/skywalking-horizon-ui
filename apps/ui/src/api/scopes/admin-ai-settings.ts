@@ -21,7 +21,7 @@ import type { BffClient } from '../client';
 
 export interface AiAdminSettings {
   enabled: boolean;
-  provider: 'openai-compatible' | 'bedrock';
+  provider: 'openai-compatible' | 'bedrock' | 'anthropic';
   model: string;
   baseUrl: string;
   region: string;
@@ -29,12 +29,13 @@ export interface AiAdminSettings {
   ready: boolean;
   /** false = 由 YAML / 环境变量接管，页面只读。 */
   writable: boolean;
-  source: 'settings-file' | 'environment';
+  /** settings-file = 已保存；unset = 可写但尚未保存；environment = 只读环境配置。 */
+  source: 'settings-file' | 'unset' | 'environment';
 }
 
 export interface AiAdminSettingsInput {
   enabled: boolean;
-  provider: 'openai-compatible' | 'bedrock';
+  provider: 'openai-compatible' | 'bedrock' | 'anthropic';
   model: string;
   baseUrl: string;
   region: string;

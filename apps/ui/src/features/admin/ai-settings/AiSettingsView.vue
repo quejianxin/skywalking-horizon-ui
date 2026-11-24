@@ -70,6 +70,13 @@ onMounted(() => void load());
 
 const readOnly = computed(() => loaded.value !== null && (!loaded.value.writable || !auth.hasVerb('ai-settings:write')));
 
+const sourceLabel = computed(() => {
+  const source = loaded.value?.source;
+  if (source === 'settings-file') return t('Saved in this page');
+  if (source === 'unset') return t('Not saved yet');
+  return t('From environment variables');
+});
+
 const dirty = computed(() => {
   const view = loaded.value;
   if (!view) return false;
@@ -92,6 +99,14 @@ const keyHint = computed(() =>
 
 const missingBaseUrl = computed(
   () => draft.enabled && draft.provider === 'openai-compatible' && draft.baseUrl.trim() === '',
+);
+const modelPlaceholder = computed(() =>
+  draft.provider === 'anthropic'
+    ? t('e.g. claude-sonnet-4-5')
+    : t('e.g. deepseek-chat or a Bedrock inference-profile id'),
+);
+const baseUrlPlaceholder = computed(() =>
+  draft.provider === 'anthropic' ? 'https://api.anthropic.com' : 'https://api.openai.com/v1',
 );
 const missingModel = computed(() => draft.enabled && draft.model.trim() === '');
 const canSave = computed(
@@ -150,9 +165,7 @@ async function save(): Promise<void> {
           <span class="ai__pill" :class="loaded.ready ? 'is-ok' : 'is-warn'">
             {{ loaded.ready ? t('Ready') : t('Not ready') }}
           </span>
-          <span class="ai__source">
-            {{ loaded.source === 'settings-file' ? t('Saved in this page') : t('From environment variables') }}
-          </span>
+          <span class="ai__source">{{ sourceLabel }}</span>
         </div>
 
         <label class="ai__row ai__row--check">
@@ -165,9 +178,10 @@ async function save(): Promise<void> {
           <select v-model="draft.provider" class="ai__input" :disabled="readOnly || saving">
             <option value="openai-compatible">openai-compatible</option>
             <option value="bedrock">bedrock</option>
+            <option value="anthropic">anthropic</option>
           </select>
           <span class="ai__hint">
-            {{ t('openai-compatible covers OpenAI, DeepSeek, local models and gateways. Choose bedrock only for Amazon Bedrock.') }}
+            {{ t('openai-compatible covers OpenAI, DeepSeek, local models and gateways. Choose bedrock for Amazon Bedrock or anthropic for the Claude API.') }}
           </span>
         </label>
 
@@ -179,12 +193,12 @@ async function save(): Promise<void> {
             type="text"
             autocomplete="off"
             :disabled="readOnly || saving"
-            :placeholder="t('e.g. deepseek-chat or a Bedrock inference-profile id')"
+            :placeholder="modelPlaceholder"
           />
           <span v-if="missingModel" class="ai__hint ai__hint--err">{{ t('A model id is required when the assistant is enabled.') }}</span>
         </label>
 
-        <label v-if="draft.provider === 'openai-compatible'" class="ai__row">
+        <label v-if="draft.provider !== 'bedrock'" class="ai__row">
           <span class="ai__label">{{ t('Base URL') }}</span>
           <input
             v-model="draft.baseUrl"
@@ -192,9 +206,10 @@ async function save(): Promise<void> {
             type="url"
             autocomplete="off"
             :disabled="readOnly || saving"
-            placeholder="https://api.openai.com/v1"
+            :placeholder="baseUrlPlaceholder"
           />
           <span v-if="missingBaseUrl" class="ai__hint ai__hint--err">{{ t('Base URL is required for the openai-compatible provider.') }}</span>
+          <span v-else-if="draft.provider === 'anthropic'" class="ai__hint">{{ t('Leave blank to call the official Anthropic API. Enter a base URL only for an approved gateway.') }}</span>
         </label>
 
         <label v-if="draft.provider === 'bedrock'" class="ai__row">
@@ -223,6 +238,7 @@ async function save(): Promise<void> {
           />
           <span v-if="loaded.hasApiKey" class="ai__hint">{{ keyHint }}</span>
           <span v-if="draft.provider === 'bedrock'" class="ai__hint">{{ t('For Bedrock, use the bearer key (ABSK…).') }}</span>
+          <span v-else-if="draft.provider === 'anthropic'" class="ai__hint">{{ t('For Anthropic, use an API key from console.anthropic.com (sk-ant-…).') }}</span>
           <label v-if="loaded.hasApiKey" class="ai__clear">
             <input v-model="clearKey" type="checkbox" :disabled="readOnly || saving" />
             <span>{{ t('Remove the stored API key on save') }}</span>
@@ -235,7 +251,7 @@ async function save(): Promise<void> {
           </button>
           <span v-if="flash" class="ai__flash">{{ flash }}</span>
           <span v-else-if="dirty" class="ai__dirty">{{ t('Unsaved changes') }}</span>
-          <span v-else-if="loaded" class="ai__clean">{{ t('Saved') }}</span>
+          <span v-else-if="loaded.source === 'settings-file'" class="ai__clean">{{ t('Saved') }}</span>
           <span v-if="saveError" class="ai__error">{{ t('Failed to save: {err}', { err: saveError }) }}</span>
         </footer>
       </section>

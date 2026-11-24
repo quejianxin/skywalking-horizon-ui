@@ -83,6 +83,7 @@ export function loadAiOutboundPolicy(): AiOutboundPolicy {
 
 function resolveBaseUrl(target: AiModelTarget, isRequired: boolean): string | undefined {
   const raw = target.baseUrl || undefined;
+  // anthropic 留空表示官方端点；只有 openai-compatible 必须显式给出地址。
   if (!raw && isRequired && target.provider === 'openai-compatible') {
     throw new AiConfigError('baseUrl', 'OpenAI 兼容服务必须填写 baseUrl');
   }
@@ -98,13 +99,13 @@ function resolveBaseUrl(target: AiModelTarget, isRequired: boolean): string | un
 }
 
 function resolveRegion(target: AiModelTarget, isRequired: boolean): string | undefined {
-  const isBedrock = target.provider === 'bedrock';
-  const fallback = isBedrock ? process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION : undefined;
-  const region = target.region || fallback || undefined;
-  if (!region && isRequired && isBedrock) {
+  // 区域只对 Bedrock 有意义；其他提供方保留空值，避免切换提供方后残留旧区域。
+  if (target.provider !== 'bedrock') return undefined;
+  const region = target.region || process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION || undefined;
+  if (!region && isRequired) {
     throw new AiConfigError('region', 'Bedrock 必须填写 region 或设置 AWS_REGION / AWS_DEFAULT_REGION');
   }
-  if (!region || (!isBedrock && !target.outboundPolicy)) return region;
+  if (!region) return undefined;
   if (!isBedrockRegion(region)) throw new AiConfigError('region', 'region 必须是有效的 AWS 区域格式');
   if (target.outboundPolicy && !target.outboundPolicy.regions.has(region)) {
     throw new AiConfigError('region', `region 未获部署方批准，请检查 ${ALLOWED_REGIONS_ENV}`);

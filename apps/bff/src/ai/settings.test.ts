@@ -92,7 +92,7 @@ describe('AiSettingsStore', () => {
       const store = new AiSettingsStore({ filePath, base: () => baseConfig({ enabled: true }) });
 
       expect(store.writable).toBe(true);
-      expect(store.view().source).toBe('settings-file');
+      expect(store.view().source).toBe('unset');
       expect(store.effective()).toMatchObject(baseConfig({ enabled: false, apiKey: '' }));
     });
 
@@ -185,14 +185,15 @@ describe('AiSettingsStore', () => {
       vi.stubEnv('HORIZON_AI_ALLOWED_BASE_URLS', undefined);
       const store = new AiSettingsStore({ filePath, base: () => baseConfig() });
       expect(() => store.save(baseConfig())).toThrow('baseUrl 未获部署方批准');
-      expect(store.view()).toMatchObject({ source: 'settings-file', ready: false, hasApiKey: false });
+      expect(store.view()).toMatchObject({ source: 'unset', ready: false, hasApiKey: false });
     });
 
     it.each([
       { baseUrl: `${APPROVED_URL}/preview` },
       { baseUrl: 'https://models.example.invalid:8443/v1' },
-      { region: 'ap-southeast-2' },
-      { region: 'us-west' },
+      // 区域只对 Bedrock 生效，因此按 bedrock 保存来验证区域约束。
+      { provider: 'bedrock' as const, region: 'ap-southeast-2' },
+      { provider: 'bedrock' as const, region: 'us-west' },
       { apiKey: `${SYNTHETIC_KEY}\n` },
     ])('拒绝不符合出站约束的保存，不改写文件或生效配置：%j', (changes) => {
       const store = new AiSettingsStore({ filePath, base: () => baseConfig() });
@@ -314,6 +315,12 @@ describe('aiSettingsInputSchema', () => {
   it('accepts bedrock with a blank baseUrl and region', () => {
     expect(
       aiSettingsInputSchema.safeParse({ ...valid, provider: 'bedrock', baseUrl: '', region: '' }).success,
+    ).toBe(true);
+  });
+
+  it('accepts anthropic with a blank baseUrl and region', () => {
+    expect(
+      aiSettingsInputSchema.safeParse({ ...valid, provider: 'anthropic', baseUrl: '', region: '' }).success,
     ).toBe(true);
   });
 

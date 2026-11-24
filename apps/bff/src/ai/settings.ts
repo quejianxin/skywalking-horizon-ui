@@ -34,7 +34,7 @@ import {
 
 const settingsFields = z.object({
   enabled: z.boolean(),
-  provider: z.enum(['openai-compatible', 'bedrock']),
+  provider: z.enum(['openai-compatible', 'bedrock', 'anthropic']),
   model: z.string().trim().max(200),
   baseUrl: z.string().trim().max(2000).refine(
     (value) => value === '' || normalizeModelBaseUrl(value) !== undefined,
@@ -79,7 +79,8 @@ export interface AiSettingsView {
   ready: boolean;
   /** false = 未配置设置文件，配置由 YAML / 环境变量接管。 */
   writable: boolean;
-  source: 'settings-file' | 'environment';
+  /** settings-file = 已有保存的文件；unset = 可写但尚未保存；environment = 只读环境配置。 */
+  source: 'settings-file' | 'unset' | 'environment';
 }
 
 export interface AiSettingsStoreDeps {
@@ -145,7 +146,7 @@ export class AiSettingsStore {
       ready: aiEffectivelyReady(ai),
       writable: this.writable,
       // 配置了设置文件即由该文件接管；文件尚未创建时环境配置也不会生效。
-      source: this.writable ? 'settings-file' : 'environment',
+      source: this.overrides ? 'settings-file' : this.writable ? 'unset' : 'environment',
     };
   }
 

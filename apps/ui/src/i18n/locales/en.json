@@ -3674,7 +3674,6 @@
   "Saved in this page": "Saved in this page",
   "From environment variables": "From environment variables",
   "Enable the AI assistant": "Enable the AI assistant",
-  "openai-compatible covers OpenAI, DeepSeek, local models and gateways. Choose bedrock only for Amazon Bedrock.": "openai-compatible covers OpenAI, DeepSeek, local models and gateways. Choose bedrock only for Amazon Bedrock.",
   "e.g. deepseek-chat or a Bedrock inference-profile id": "e.g. deepseek-chat or a Bedrock inference-profile id",
   "A model id is required when the assistant is enabled.": "A model id is required when the assistant is enabled.",
   "Base URL": "Base URL",
@@ -3694,5 +3693,10 @@
   "The API key is stored on the server and is never shown again. Only users with write permission can change these settings.": "The API key is stored on the server and is never shown again. Only users with write permission can change these settings.",
   "AI assistant settings": "AI assistant settings",
   "See the AI assistant settings": "See the AI assistant settings",
-  "Change the AI assistant provider, model and API key": "Change the AI assistant provider, model and API key"
+  "Change the AI assistant provider, model and API key": "Change the AI assistant provider, model and API key",
+  "openai-compatible covers OpenAI, DeepSeek, local models and gateways. Choose bedrock for Amazon Bedrock or anthropic for the Claude API.": "openai-compatible covers OpenAI, DeepSeek, local models and gateways. Choose bedrock for Amazon Bedrock or anthropic for the Claude API.",
+  "Not saved yet": "Not saved yet",
+  "e.g. claude-sonnet-4-5": "e.g. claude-sonnet-4-5",
+  "Leave blank to call the official Anthropic API. Enter a base URL only for an approved gateway.": "Leave blank to call the official Anthropic API. Enter a base URL only for an approved gateway.",
+  "For Anthropic, use an API key from console.anthropic.com (sk-ant-…).": "For Anthropic, use an API key from console.anthropic.com (sk-ant-…)."
 }

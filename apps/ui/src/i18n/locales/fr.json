@@ -3674,7 +3674,6 @@
   "Saved in this page": "Enregistré sur cette page",
   "From environment variables": "Depuis les variables d'environnement",
   "Enable the AI assistant": "Activer l'assistant IA",
-  "openai-compatible covers OpenAI, DeepSeek, local models and gateways. Choose bedrock only for Amazon Bedrock.": "openai-compatible couvre OpenAI, DeepSeek, les modèles locaux et les passerelles. Choisissez bedrock uniquement pour Amazon Bedrock.",
   "e.g. deepseek-chat or a Bedrock inference-profile id": "par ex. deepseek-chat ou un id de profil d'inférence Bedrock",
   "A model id is required when the assistant is enabled.": "Un id de modèle est requis lorsque l'assistant est activé.",
   "Base URL": "URL de base",
@@ -3694,5 +3693,10 @@
   "The API key is stored on the server and is never shown again. Only users with write permission can change these settings.": "La clé API est stockée sur le serveur et ne sera plus affichée. Seuls les utilisateurs disposant du droit d’écriture peuvent modifier ces paramètres.",
   "AI assistant settings": "Paramètres de l'assistant IA",
   "See the AI assistant settings": "Voir les paramètres de l'assistant IA",
-  "Change the AI assistant provider, model and API key": "Modifier le fournisseur, le modèle et la clé d'API de l'assistant IA"
+  "Change the AI assistant provider, model and API key": "Modifier le fournisseur, le modèle et la clé d'API de l'assistant IA",
+  "openai-compatible covers OpenAI, DeepSeek, local models and gateways. Choose bedrock for Amazon Bedrock or anthropic for the Claude API.": "openai-compatible couvre OpenAI, DeepSeek, les modèles locaux et les passerelles. Choisissez bedrock pour Amazon Bedrock ou anthropic pour l'API Claude.",
+  "Not saved yet": "Pas encore enregistré",
+  "e.g. claude-sonnet-4-5": "e.g. claude-sonnet-4-5",
+  "Leave blank to call the official Anthropic API. Enter a base URL only for an approved gateway.": "Laissez vide pour appeler l'API Anthropic officielle. Ne renseignez une URL de base que pour une passerelle approuvée.",
+  "For Anthropic, use an API key from console.anthropic.com (sk-ant-…).": "Pour Anthropic, utilisez une clé d'API de console.anthropic.com (sk-ant-…)."
 }

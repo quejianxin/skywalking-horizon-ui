@@ -49,9 +49,9 @@ The launcher — a floating **AI Assistant** button on the right edge, after log
 | Field | Env var | Meaning |
 |---|---|---|
 | `enabled` | `HORIZON_AI_ENABLED` | Master switch. Default `false`. |
-| `provider` | `HORIZON_AI_PROVIDER` | Transport: `openai-compatible` (default) or `bedrock`. Only set it for a non-OpenAI-shaped service. |
+| `provider` | `HORIZON_AI_PROVIDER` | Transport: `openai-compatible` (default), `bedrock`, or `anthropic` (Claude API). |
 | `model` | `HORIZON_AI_MODEL` | Model id to use. |
-| `baseUrl` | `HORIZON_AI_BASE_URL` | Endpoint URL for `openai-compatible`. |
+| `baseUrl` | `HORIZON_AI_BASE_URL` | Endpoint URL for `openai-compatible`; an optional gateway URL for `anthropic`. |
 | `region` | `HORIZON_AI_REGION` | AWS region for `bedrock`. Optional — falls back to `AWS_REGION` / `AWS_DEFAULT_REGION`. |
 | `apiKey` | `HORIZON_AI_API_KEY` | **密钥。** 基础配置通过环境变量提供；管理页保存的密钥存入设置文件，不得提交到仓库。 |
 | `systemPrompt` | `HORIZON_AI_SYSTEM_PROMPT` | Override the bundled system prompt. Blank → bundled default. |
@@ -86,6 +86,18 @@ ai:
 ```
 
 `model` must be a full Bedrock model or inference-profile id (for example `us.anthropic.claude-3-7-sonnet-20250219-v1:0`) — a bare vendor model id is not auto-prefixed. `apiKey` is a Bedrock bearer key (`ABSK…`). Leave `region` blank and Horizon reads it from the `AWS_REGION` / `AWS_DEFAULT_REGION` environment variables, or set it to pin one. (A region set only in `~/.aws/config` is not picked up — supply it via config or one of those env vars.)
+
+**Anthropic Claude API** — set `provider: anthropic` to call the Claude Messages API directly, with a Claude model id as `model` and a Claude API key as `apiKey`. Leave `baseUrl` blank for the official endpoint; set it only to route through a gateway:
+
+```yaml
+ai:
+  enabled: true
+  provider: anthropic
+  model: "your-claude-model-id"
+  apiKey: "${HORIZON_AI_API_KEY}"
+```
+
+When the assistant is configured from the admin page, a `baseUrl` set for `anthropic` must appear in `HORIZON_AI_ALLOWED_BASE_URLS`; a blank one always uses the official Anthropic endpoint and never follows the SDK's endpoint environment override.
 
 Inference parameters (temperature, output-token caps) are **not** Horizon settings — they are owned by your model/gateway. The assistant fixes temperature at 0 for reliable tool use.
 

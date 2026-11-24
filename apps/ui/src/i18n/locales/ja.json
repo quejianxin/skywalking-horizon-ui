@@ -3674,7 +3674,6 @@
   "Saved in this page": "このページで保存済み",
   "From environment variables": "環境変数から",
   "Enable the AI assistant": "AI アシスタントを有効にする",
-  "openai-compatible covers OpenAI, DeepSeek, local models and gateways. Choose bedrock only for Amazon Bedrock.": "openai-compatible は OpenAI、DeepSeek、ローカルモデル、ゲートウェイに対応します。Amazon Bedrock の場合のみ bedrock を選択してください。",
   "e.g. deepseek-chat or a Bedrock inference-profile id": "例: deepseek-chat または Bedrock 推論プロファイル ID",
   "A model id is required when the assistant is enabled.": "アシスタントを有効にする場合はモデル ID が必須です。",
   "Base URL": "ベース URL",
@@ -3694,5 +3693,10 @@
   "The API key is stored on the server and is never shown again. Only users with write permission can change these settings.": "API キーはサーバーに保存され、再表示されません。書き込み権限を持つユーザーのみが設定を変更できます。",
   "AI assistant settings": "AI アシスタント設定",
   "See the AI assistant settings": "AI アシスタントの設定を表示",
-  "Change the AI assistant provider, model and API key": "AI アシスタントのプロバイダー、モデル、API キーを変更"
+  "Change the AI assistant provider, model and API key": "AI アシスタントのプロバイダー、モデル、API キーを変更",
+  "openai-compatible covers OpenAI, DeepSeek, local models and gateways. Choose bedrock for Amazon Bedrock or anthropic for the Claude API.": "openai-compatible は OpenAI、DeepSeek、ローカルモデル、ゲートウェイに対応します。Amazon Bedrock は bedrock、Claude API は anthropic を選択してください。",
+  "Not saved yet": "まだ保存されていません",
+  "e.g. claude-sonnet-4-5": "e.g. claude-sonnet-4-5",
+  "Leave blank to call the official Anthropic API. Enter a base URL only for an approved gateway.": "空欄のままにすると Anthropic 公式 API を呼び出します。承認済みのゲートウェイを使う場合のみベース URL を入力してください。",
+  "For Anthropic, use an API key from console.anthropic.com (sk-ant-…).": "Anthropic では console.anthropic.com の API キー（sk-ant-…）を使用します。"
 }

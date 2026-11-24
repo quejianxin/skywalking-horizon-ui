@@ -3674,7 +3674,6 @@
   "Saved in this page": "Salvo nesta página",
   "From environment variables": "Das variáveis de ambiente",
   "Enable the AI assistant": "Ativar o assistente de IA",
-  "openai-compatible covers OpenAI, DeepSeek, local models and gateways. Choose bedrock only for Amazon Bedrock.": "openai-compatible cobre OpenAI, DeepSeek, modelos locais e gateways. Escolha bedrock apenas para Amazon Bedrock.",
   "e.g. deepseek-chat or a Bedrock inference-profile id": "ex.: deepseek-chat ou um id de perfil de inferência do Bedrock",
   "A model id is required when the assistant is enabled.": "Um id de modelo é obrigatório quando o assistente está ativado.",
   "Base URL": "URL base",
@@ -3694,5 +3693,10 @@
   "The API key is stored on the server and is never shown again. Only users with write permission can change these settings.": "A chave de API é armazenada no servidor e não será exibida novamente. Somente usuários com permissão de gravação podem alterar estas configurações.",
   "AI assistant settings": "Configurações do assistente de IA",
   "See the AI assistant settings": "Ver as configurações do assistente de IA",
-  "Change the AI assistant provider, model and API key": "Alterar o provedor, o modelo e a chave de API do assistente de IA"
+  "Change the AI assistant provider, model and API key": "Alterar o provedor, o modelo e a chave de API do assistente de IA",
+  "openai-compatible covers OpenAI, DeepSeek, local models and gateways. Choose bedrock for Amazon Bedrock or anthropic for the Claude API.": "openai-compatible cobre OpenAI, DeepSeek, modelos locais e gateways. Escolha bedrock para Amazon Bedrock ou anthropic para a API Claude.",
+  "Not saved yet": "Ainda não guardado",
+  "e.g. claude-sonnet-4-5": "e.g. claude-sonnet-4-5",
+  "Leave blank to call the official Anthropic API. Enter a base URL only for an approved gateway.": "Deixe em branco para chamar a API oficial da Anthropic. Informe uma URL base apenas para um gateway aprovado.",
+  "For Anthropic, use an API key from console.anthropic.com (sk-ant-…).": "Para Anthropic, use uma chave de API de console.anthropic.com (sk-ant-…)."
 }

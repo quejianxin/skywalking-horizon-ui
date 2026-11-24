@@ -18,8 +18,9 @@
 /**
  * Pluggable LLM provider — the ONE place a chat model is constructed. Keeps
  * the agent + tools vendor-neutral: they see a `BaseChatModel` and never know
- * which backend answered. Two providers today: any OpenAI-compatible endpoint
- * (default, via baseUrl) and Amazon Bedrock Converse.
+ * which backend answered. Three providers today: any OpenAI-compatible endpoint
+ * (default, via baseUrl), Amazon Bedrock Converse, and the Anthropic Claude
+ * Messages API (baseUrl only when pointed at a gateway).
  *
  * Credentials are resolved per request (never module-global) — the Bedrock
  * bearer key is passed to the constructor explicitly rather than via
@@ -27,6 +28,7 @@
  */
 
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
+import { ChatAnthropic } from '@langchain/anthropic';
 import { ChatBedrockConverse } from '@langchain/aws';
 import { ChatOpenAI } from '@langchain/openai';
 import {
@@ -40,13 +42,15 @@ import {
 export { AiConfigError } from '../../model-outbound.js';
 export type AiProvider = AiRuntimeConfig['provider'];
 
+const ANTHROPIC_DEFAULT_URL = 'https://api.anthropic.com';
+
 /** Resolved, ready-to-use credentials for ONE chat request, assembled from the
  *  central `config.ai` — the factory only ever sees this normalized shape. */
 export interface AiCredentials {
   provider: AiProvider;
   model: string;
   apiKey: string;
-  /** OpenAI-compatible base URL (provider='openai-compatible'). */
+  /** OpenAI-compatible base URL, or an Anthropic gateway URL. */
   baseUrl?: string;
   /** AWS 区域；留空时按部署环境解析。 */
   region?: string;
@@ -104,6 +108,21 @@ export function buildChatModel(creds: AiCredentials): BaseChatModel {
       clientOptions: creds.outboundPolicy ? { ignoreConfiguredEndpointUrls: true } : undefined,
       temperature: 0,
       streaming: true,
+    });
+  }
+
+  if (provider === 'anthropic') {
+    return new ChatAnthropic({
+      model,
+      apiKey,
+      // 可写模式固定官方端点，避免 ANTHROPIC_BASE_URL 把流量导到未获批地址；
+      // 填写地址时已由 resolveModelTarget 校验过名单。
+      anthropicApiUrl: baseUrl || (creds.outboundPolicy ? ANTHROPIC_DEFAULT_URL : undefined),
+      temperature: 0,
+      streaming: true,
+      clientOptions: {
+        fetch: (input, init) => globalThis.fetch(input, { ...init, redirect: 'error' }),
+      },
     });
   }
 

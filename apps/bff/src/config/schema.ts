@@ -648,13 +648,14 @@ const sourceMapsSchema = z
 // the DEFAULT is `openai-compatible` (any OpenAI-shaped endpoint — OpenAI,
 // DeepSeek-direct, local models, AI gateways, Azure-OpenAI, or Claude behind a
 // gateway), configured with just model + baseUrl + apiKey. `provider` is only
-// set for a non-OpenAI-shaped SERVICE — today `bedrock` (AWS Converse + bearer).
+// set for a differently shaped SERVICE — `bedrock` (AWS Converse + bearer) and
+// `anthropic` (Claude Messages API, baseUrl only for a gateway).
 // 密钥由环境变量或管理页设置文件提供，不得直接写入 YAML，也不得记录到日志。
-// Env-overridable defaults let a file-less container enable the
-// feature with `HORIZON_AI_*` alone (mirrors sourceMaps / templates.mode).
+// Env-overridable defaults let a file-less container enable the feature with `HORIZON_AI_*`.
 const aiEnabledDefault = process.env.HORIZON_AI_ENABLED === 'true';
-const aiProviderDefault: 'openai-compatible' | 'bedrock' =
-  process.env.HORIZON_AI_PROVIDER === 'bedrock' ? 'bedrock' : 'openai-compatible';
+const aiProviderEnv = process.env.HORIZON_AI_PROVIDER;
+const aiProviderDefault: 'openai-compatible' | 'bedrock' | 'anthropic' =
+  aiProviderEnv === 'bedrock' || aiProviderEnv === 'anthropic' ? aiProviderEnv : 'openai-compatible';
 const aiModelDefault = process.env.HORIZON_AI_MODEL ?? '';
 const aiBaseUrlDefault = process.env.HORIZON_AI_BASE_URL ?? '';
 const aiRegionDefault = process.env.HORIZON_AI_REGION ?? '';
@@ -672,14 +673,16 @@ const aiSchema = z
     /** Transport. `openai-compatible` (default) = any OpenAI-shaped endpoint via
      *  `baseUrl` (OpenAI, DeepSeek-direct, local models, gateways, Claude behind
      *  a gateway); `bedrock` = Amazon Bedrock Converse (needs a Bedrock model
-     *  id + a Bedrock bearer key; region can come from AWS env/config). Set
-     *  `provider` only for a non-OpenAI-shaped service. */
-    provider: z.enum(['openai-compatible', 'bedrock']).default(aiProviderDefault),
+     *  id + a Bedrock bearer key; region can come from AWS env/config);
+     *  `anthropic` = Anthropic Claude Messages API (model id + Claude API key,
+     *  baseUrl only for a gateway). */
+    provider: z.enum(['openai-compatible', 'bedrock', 'anthropic']).default(aiProviderDefault),
     /** Model id. For `bedrock` this MUST be the Bedrock / inference-profile id
      *  (e.g. `deepseek.v3.2`, `us.anthropic.claude-...`), NOT the bare Anthropic
      *  id — do not auto-prefix, the operator/user supplies the exact id. */
     model: z.string().default(aiModelDefault),
-    /** OpenAI-compatible base URL. Used only when `provider: 'openai-compatible'`. */
+    /** OpenAI-compatible base URL, or a gateway URL for `provider: 'anthropic'`.
+     *  For `anthropic` a blank value means the official Anthropic endpoint. */
     baseUrl: z.string().default(aiBaseUrlDefault),
     /** AWS region for `provider: 'bedrock'`. OPTIONAL — leave blank to read it
      *  from AWS_REGION / AWS_DEFAULT_REGION in the environment. Set it only to

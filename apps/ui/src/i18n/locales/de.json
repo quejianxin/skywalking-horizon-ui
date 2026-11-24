@@ -3674,7 +3674,6 @@
   "Saved in this page": "Auf dieser Seite gespeichert",
   "From environment variables": "Aus Umgebungsvariablen",
   "Enable the AI assistant": "KI-Assistenten aktivieren",
-  "openai-compatible covers OpenAI, DeepSeek, local models and gateways. Choose bedrock only for Amazon Bedrock.": "openai-compatible deckt OpenAI, DeepSeek, lokale Modelle und Gateways ab. Wähle bedrock nur für Amazon Bedrock.",
   "e.g. deepseek-chat or a Bedrock inference-profile id": "z. B. deepseek-chat oder eine Bedrock-Inference-Profile-ID",
   "A model id is required when the assistant is enabled.": "Bei aktiviertem Assistenten ist eine Modell-ID erforderlich.",
   "Base URL": "Basis-URL",
@@ -3694,5 +3693,10 @@
   "The API key is stored on the server and is never shown again. Only users with write permission can change these settings.": "Der API-Schlüssel wird auf dem Server gespeichert und nicht erneut angezeigt. Nur Benutzer mit Schreibberechtigung können diese Einstellungen ändern.",
   "AI assistant settings": "KI-Assistent-Einstellungen",
   "See the AI assistant settings": "Die Einstellungen des KI-Assistenten ansehen",
-  "Change the AI assistant provider, model and API key": "Provider, Modell und API-Schlüssel des KI-Assistenten ändern"
+  "Change the AI assistant provider, model and API key": "Provider, Modell und API-Schlüssel des KI-Assistenten ändern",
+  "openai-compatible covers OpenAI, DeepSeek, local models and gateways. Choose bedrock for Amazon Bedrock or anthropic for the Claude API.": "openai-compatible deckt OpenAI, DeepSeek, lokale Modelle und Gateways ab. Wählen Sie bedrock für Amazon Bedrock oder anthropic für die Claude-API.",
+  "Not saved yet": "Noch nicht gespeichert",
+  "e.g. claude-sonnet-4-5": "e.g. claude-sonnet-4-5",
+  "Leave blank to call the official Anthropic API. Enter a base URL only for an approved gateway.": "Leer lassen, um die offizielle Anthropic-API zu nutzen. Eine Basis-URL nur für ein freigegebenes Gateway eintragen.",
+  "For Anthropic, use an API key from console.anthropic.com (sk-ant-…).": "Verwenden Sie für Anthropic einen API-Schlüssel von console.anthropic.com (sk-ant-…)."
 }

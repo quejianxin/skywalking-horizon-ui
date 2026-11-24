@@ -46,18 +46,21 @@ importers:
       '@jridgewell/trace-mapping':
         specifier: ^0.3.31
         version: 0.3.31
+      '@langchain/anthropic':
+        specifier: ^1.5.0
+        version: 1.5.0(@langchain/core@1.2.4(@opentelemetry/api@1.10.0)(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1))
       '@langchain/aws':
         specifier: ^1.4.3
-        version: 1.4.3(@langchain/core@1.2.4(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1))
+        version: 1.4.3(@langchain/core@1.2.4(@opentelemetry/api@1.10.0)(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1))
       '@langchain/core':
         specifier: ^1.2.4
-        version: 1.2.4(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1)
+        version: 1.2.4(@opentelemetry/api@1.10.0)(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1)
       '@langchain/langgraph':
         specifier: ^1.4.8
-        version: 1.4.8(@langchain/core@1.2.4(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1))(vue@3.5.44(typescript@5.6.3))(zod@3.25.76)
+        version: 1.4.8(@langchain/core@1.2.4(@opentelemetry/api@1.10.0)(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1))(vue@3.5.44(typescript@5.6.3))(zod@3.25.76)
       '@langchain/openai':
         specifier: ^1.5.5
-        version: 1.5.5(@aws-sdk/credential-provider-node@3.972.76)(@langchain/core@1.2.4(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1))(@smithy/signature-v4@5.6.12)(ws@8.21.1)
+        version: 1.5.5(@aws-sdk/credential-provider-node@3.972.76)(@langchain/core@1.2.4(@opentelemetry/api@1.10.0)(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1))(@smithy/signature-v4@5.6.12)(ws@8.21.1)
       '@modelcontextprotocol/sdk':
         specifier: ^1.32.2
         version: 1.32.2(@cfworker/json-schema@4.1.1)(zod@3.25.76)
@@ -136,7 +139,7 @@ importers:
         version: 8.65.0(eslint@9.39.5)(typescript@5.6.3)
       vitest:
         specifier: ^4.1.12
-        version: 4.1.12(@types/node@22.20.1)(jsdom@25.0.1)(vite@6.4.5(@types/node@22.20.1)(sass@1.102.0)(tsx@4.23.1)(yaml@2.9.0))
+        version: 4.1.12(@opentelemetry/api@1.10.0)(@types/node@22.20.1)(jsdom@25.0.1)(vite@6.4.5(@types/node@22.20.1)(sass@1.102.0)(tsx@4.23.1)(yaml@2.9.0))
 
   apps/ui:
     dependencies:
@@ -245,7 +248,7 @@ importers:
         version: 6.4.5(@types/node@22.20.1)(sass@1.102.0)(tsx@4.23.1)(yaml@2.9.0)
       vitest:
         specifier: ^4.1.12
-        version: 4.1.12(@types/node@22.20.1)(jsdom@25.0.1)(vite@6.4.5(@types/node@22.20.1)(sass@1.102.0)(tsx@4.23.1)(yaml@2.9.0))
+        version: 4.1.12(@opentelemetry/api@1.10.0)(@types/node@22.20.1)(jsdom@25.0.1)(vite@6.4.5(@types/node@22.20.1)(sass@1.102.0)(tsx@4.23.1)(yaml@2.9.0))
       vue-tsc:
         specifier: ^2.2.12
         version: 2.2.12(typescript@5.6.3)
@@ -257,7 +260,7 @@ importers:
         version: 5.6.3
       vitest:
         specifier: ^4.1.12
-        version: 4.1.12(@types/node@22.20.1)(jsdom@25.0.1)(vite@6.4.5(@types/node@22.20.1)(sass@1.102.0)(tsx@4.23.1)(yaml@2.9.0))
+        version: 4.1.12(@opentelemetry/api@1.10.0)(@types/node@22.20.1)(jsdom@25.0.1)(vite@6.4.5(@types/node@22.20.1)(sass@1.102.0)(tsx@4.23.1)(yaml@2.9.0))
 
   packages/conversation-view:
     devDependencies:
@@ -284,7 +287,7 @@ importers:
         version: 6.4.5(@types/node@22.20.1)(sass@1.102.0)(tsx@4.23.1)(yaml@2.9.0)
       vitest:
         specifier: ^4.1.12
-        version: 4.1.12(@types/node@22.20.1)(jsdom@25.0.1)(vite@6.4.5(@types/node@22.20.1)(sass@1.102.0)(tsx@4.23.1)(yaml@2.9.0))
+        version: 4.1.12(@opentelemetry/api@1.10.0)(@types/node@22.20.1)(jsdom@25.0.1)(vite@6.4.5(@types/node@22.20.1)(sass@1.102.0)(tsx@4.23.1)(yaml@2.9.0))
 
   packages/design-tokens:
     devDependencies:
@@ -305,6 +308,15 @@ importers:
         version: 5.6.3
 
 packages:
+
+  '@anthropic-ai/sdk@0.103.0':
+    resolution: {integrity: sha512-1uG7RNgoHTUxzOXqSCODKt0UTVlxWiHk/2Tt2/uQJiPW7XzBeKVuJyd3Aw6T3LPyvZV/jDTnPLX7SaM70WLLjA==}
+    hasBin: true
+    peerDependencies:
+      zod: ^3.25.0 || ^4.0.0
+    peerDependenciesMeta:
+      zod:
+        optional: true
 
   '@asamuzakjp/css-color@3.2.0':
     resolution: {integrity: sha512-K1A6z8tS3XsmCMM86xoWdn7Fkdn9m6RSVtocUrJYIwZnFVkng/PvkEoWtOWmP+Scc6saYWHWZYbndEEXxl24jw==}
@@ -506,6 +518,10 @@ packages:
     engines: {node: '>=6.9.0'}
     peerDependencies:
       '@babel/core': ^7.0.0-0
+
+  '@babel/runtime@7.29.15':
+    resolution: {integrity: sha512-304gsbbGVmQc+cNGHzwHBlqepYdWLKj3VXCQBGt/EGcV7PUPfKI7kAUNW1FZEOCwlQiLvQjg1JEaAlRQ616h+Q==}
+    engines: {node: '>=6.9.0'}
 
   '@babel/template@7.29.7':
     resolution: {integrity: sha512-puq+Gf35oI24FeN11LkoUQFqv9uwNeWpxXZi/Ji3rRIoKAzKnxRaZ+Gkj0vKS9ZCiTESfng1N9LyOyXvo+m+Gg==}
@@ -1042,6 +1058,12 @@ packages:
   '@kwsites/file-exists@1.1.1':
     resolution: {integrity: sha512-m9/5YGR18lIwxSFDwfE3oA7bWuq9kdau6ugN4H2rJeyhFQZcG9AgSHkQtSD15a8WvTgfz9aikZMrKPHvbpqFiw==}
 
+  '@langchain/anthropic@1.5.0':
+    resolution: {integrity: sha512-IhWeK87QRAYyhlvSE0p+Zh4oylnZoa+16XP7XgvsPsLEbW4YMueVYl7aT4EsbsM37xbr3l/P7euIRdowc8WfOA==}
+    engines: {node: '>=20'}
+    peerDependencies:
+      '@langchain/core': ^1.2.0
+
   '@langchain/aws@1.4.3':
     resolution: {integrity: sha512-X3oNXI1/pLizW6D4Wd1ojWTTPGnRgli8S+rm+CAhFAevIP3UdFfTDY6xih7xrQQ/0sO7po/eD0jHeZoLRKhhBg==}
     engines: {node: '>=20'}
@@ -1127,6 +1149,10 @@ packages:
 
   '@one-ini/wasm@0.1.1':
     resolution: {integrity: sha512-XuySG1E38YScSJoMlqovLru4KTUNSjgVTIjyh7qMX6aNN5HY5Ct5LhRJdxO79JtTzKfzV/bnWpz+zquYrISsvw==}
+
+  '@opentelemetry/api@1.10.0':
+    resolution: {integrity: sha512-lMkyes8iHrG+mk6WH7X70MdCLI2RS0FwNBY1PyQ8UemaijE2m5mv5A0Niy3HtbYTFrgkUEQjFMXmSAk2hQDuPQ==}
+    engines: {node: '>=8.0.0'}
 
   '@parcel/watcher-android-arm64@2.6.0':
     resolution: {integrity: sha512-trgpLSCKRC/huFjXX/Smh+0sWe4+YtKfktIToiMl59ghz7z+qkH6kMvNnUbLyRs9N11t8l4svSCs1+5B3rOAhA==}
@@ -1429,6 +1455,9 @@ packages:
   '@smithy/types@4.16.1':
     resolution: {integrity: sha512-0JFs3V2y2M9tKW5na/qxe69Zv+uxLMO7QBbhxF/FHu/Gp2NFZAAL9tWl9PU02xxo07pb3G9FTyjNc6D5uZrJIg==}
     engines: {node: '>=18.0.0'}
+
+  '@stablelib/base64@1.0.1':
+    resolution: {integrity: sha512-1bnPQqSxSuc3Ii6MhBysoWCg58j97aUjuCSZrGSmDxNqtytIi0k8utUenAwTZN4V5mXXYGsVUI9zeBqy+jBOSQ==}
 
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
@@ -2741,6 +2770,9 @@ packages:
   fast-safe-stringify@2.1.1:
     resolution: {integrity: sha512-W+KJc2dmILlPplD/H4K9l9LcAHAfPtP6BY84uVLXQ6Evcz9Lcg33Y2z1IVblT6xdY54PXYVHEv+0Wpq8Io6zkA==}
 
+  fast-sha256@1.3.0:
+    resolution: {integrity: sha512-n11RGP/lrWEFI/bWdygLxhI+pVeo1ZYIVwvvPkW7azl/rOy+F3HYRZ2K5zeE9mmkhQppyv9sQFx0JM9UabnpPQ==}
+
   fast-uri@3.1.9:
     resolution: {integrity: sha512-hS/0Wt3Ya043oKXs0sIxrMpKQITXhMLIrVAKKXi4gozGC9v7YRWVnXIZzjNPTO02M9BdxLCWqK1yRXgNziVyJQ==}
 
@@ -3212,6 +3244,10 @@ packages:
 
   json-schema-ref-resolver@3.0.1:
     resolution: {integrity: sha512-w+HwgljXpVwZ3IidoUR1qPZxSOQ+NRQWuVe6a5pe8XbHsNZE4UAwVPUvzZagn7yBKbJtt6UJnRFYbNTRPZI45Q==}
+
+  json-schema-to-ts@3.1.1:
+    resolution: {integrity: sha512-+DWg8jCJG2TEnpy7kOm/7/AxaYoaRbjVB4LFZLySZlWn8exGs3A4OLJR966cVvU26N7X9TWxl+Jsw7dzAqKT6g==}
+    engines: {node: '>=16'}
 
   json-schema-traverse@0.4.1:
     resolution: {integrity: sha512-xbbCH5dCYU5T8LcEhhuh7HJ88HXuW3qsI3Y0zOZFKfZEHcpWiHU/Jxzk629Brsab/mMiHQti9wMP+845RPe3Vg==}
@@ -4082,6 +4118,9 @@ packages:
     resolution: {integrity: sha512-WjlahMgHmCJpqzU8bIBy4qtsZdU9lRlcZE3Lvyej6t4tuOuv1vk57OW3MBrj6hXBFx/nNoC9MPMTcr5YA7NQbg==}
     engines: {node: '>=6'}
 
+  standardwebhooks@1.3.0:
+    resolution: {integrity: sha512-5W9skHjqAm2dlA9wWvglTP+oX47JX4lFXVk1aJV7+TG1snvTR4QXaVgPscEzvOw9GRreeavMwbqEeL+MGhZHCg==}
+
   stats-gl@4.2.3:
     resolution: {integrity: sha512-XxDFKl4kpB9siOTQ5szzT095uvJjj6Q3KLd7AbaceH8lJzRTnFARhBt4AnqKOpdY37iJGK+2H8W9bntMIUghYw==}
     peerDependencies:
@@ -4271,6 +4310,9 @@ packages:
   tr46@5.1.1:
     resolution: {integrity: sha512-hdF5ZgjTqgAntKkklYw0R03MG2x/bSzTtkxmIRw/sTNV8YXsCJ1tfLAX23lhxhHJlEf3CRCOCGGWw3vI3GaSPw==}
     engines: {node: '>=18'}
+
+  ts-algebra@2.0.0:
+    resolution: {integrity: sha512-FPAhNPFMrkwz76P7cdjdmiShwMynZYN6SgOujD1urY4oNm80Ou9oMdmbR45LotcKOXoy7wSmHkRFE6Mxbrhefw==}
 
   ts-api-utils@2.5.0:
     resolution: {integrity: sha512-OJ/ibxhPlqrMM0UiNHJ/0CKQkoKF243/AEmplt3qpRgkW8VG7IfOS41h7V8TjITqdByHzrjcS/2si+y4lIh8NA==}
@@ -4643,6 +4685,13 @@ packages:
 
 snapshots:
 
+  '@anthropic-ai/sdk@0.103.0(zod@3.25.76)':
+    dependencies:
+      json-schema-to-ts: 3.1.1
+      standardwebhooks: 1.3.0
+    optionalDependencies:
+      zod: 3.25.76
+
   '@asamuzakjp/css-color@3.2.0':
     dependencies:
       '@csstools/css-calc': 2.1.4(@csstools/css-parser-algorithms@3.0.5(@csstools/css-tokenizer@3.0.4))(@csstools/css-tokenizer@3.0.4)
@@ -4995,6 +5044,8 @@ snapshots:
       '@babel/plugin-syntax-typescript': 7.29.7(@babel/core@7.29.7)
     transitivePeerDependencies:
       - supports-color
+
+  '@babel/runtime@7.29.15': {}
 
   '@babel/template@7.29.7':
     dependencies:
@@ -5409,20 +5460,26 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@langchain/aws@1.4.3(@langchain/core@1.2.4(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1))':
+  '@langchain/anthropic@1.5.0(@langchain/core@1.2.4(@opentelemetry/api@1.10.0)(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1))':
+    dependencies:
+      '@anthropic-ai/sdk': 0.103.0(zod@3.25.76)
+      '@langchain/core': 1.2.4(@opentelemetry/api@1.10.0)(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1)
+      zod: 3.25.76
+
+  '@langchain/aws@1.4.3(@langchain/core@1.2.4(@opentelemetry/api@1.10.0)(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1))':
     dependencies:
       '@aws-sdk/client-bedrock-agent-runtime': 3.1100.0
       '@aws-sdk/client-bedrock-runtime': 3.1100.0
       '@aws-sdk/client-kendra': 3.1100.0
       '@aws-sdk/credential-provider-node': 3.972.76
-      '@langchain/core': 1.2.4(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1)
+      '@langchain/core': 1.2.4(@opentelemetry/api@1.10.0)(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1)
 
-  '@langchain/core@1.2.4(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1)':
+  '@langchain/core@1.2.4(@opentelemetry/api@1.10.0)(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1)':
     dependencies:
       '@cfworker/json-schema': 4.1.1
       '@standard-schema/spec': 1.1.0
       js-tiktoken: 1.0.21
-      langsmith: 0.8.8(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1)
+      langsmith: 0.8.8(@opentelemetry/api@1.10.0)(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1)
       mustache: 4.2.0
       p-queue: 6.6.2
       zod: 3.25.76
@@ -5433,13 +5490,13 @@ snapshots:
       - openai
       - ws
 
-  '@langchain/langgraph-checkpoint@1.1.3(@langchain/core@1.2.4(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1))':
+  '@langchain/langgraph-checkpoint@1.1.3(@langchain/core@1.2.4(@opentelemetry/api@1.10.0)(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1))':
     dependencies:
-      '@langchain/core': 1.2.4(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1)
+      '@langchain/core': 1.2.4(@opentelemetry/api@1.10.0)(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1)
 
-  '@langchain/langgraph-sdk@1.9.28(@langchain/core@1.2.4(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1))(vue@3.5.44(typescript@5.6.3))':
+  '@langchain/langgraph-sdk@1.9.28(@langchain/core@1.2.4(@opentelemetry/api@1.10.0)(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1))(vue@3.5.44(typescript@5.6.3))':
     dependencies:
-      '@langchain/core': 1.2.4(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1)
+      '@langchain/core': 1.2.4(@opentelemetry/api@1.10.0)(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1)
       '@langchain/protocol': 0.0.18
       '@types/json-schema': 7.0.15
       p-queue: 9.3.3
@@ -5447,11 +5504,11 @@ snapshots:
     optionalDependencies:
       vue: 3.5.44(typescript@5.6.3)
 
-  '@langchain/langgraph@1.4.8(@langchain/core@1.2.4(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1))(vue@3.5.44(typescript@5.6.3))(zod@3.25.76)':
+  '@langchain/langgraph@1.4.8(@langchain/core@1.2.4(@opentelemetry/api@1.10.0)(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1))(vue@3.5.44(typescript@5.6.3))(zod@3.25.76)':
     dependencies:
-      '@langchain/core': 1.2.4(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1)
-      '@langchain/langgraph-checkpoint': 1.1.3(@langchain/core@1.2.4(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1))
-      '@langchain/langgraph-sdk': 1.9.28(@langchain/core@1.2.4(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1))(vue@3.5.44(typescript@5.6.3))
+      '@langchain/core': 1.2.4(@opentelemetry/api@1.10.0)(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1)
+      '@langchain/langgraph-checkpoint': 1.1.3(@langchain/core@1.2.4(@opentelemetry/api@1.10.0)(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1))
+      '@langchain/langgraph-sdk': 1.9.28(@langchain/core@1.2.4(@opentelemetry/api@1.10.0)(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1))(vue@3.5.44(typescript@5.6.3))
       '@langchain/protocol': 0.0.18
       '@standard-schema/spec': 1.1.0
       zod: 3.25.76
@@ -5461,9 +5518,9 @@ snapshots:
       - svelte
       - vue
 
-  '@langchain/openai@1.5.5(@aws-sdk/credential-provider-node@3.972.76)(@langchain/core@1.2.4(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1))(@smithy/signature-v4@5.6.12)(ws@8.21.1)':
+  '@langchain/openai@1.5.5(@aws-sdk/credential-provider-node@3.972.76)(@langchain/core@1.2.4(@opentelemetry/api@1.10.0)(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1))(@smithy/signature-v4@5.6.12)(ws@8.21.1)':
     dependencies:
-      '@langchain/core': 1.2.4(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1)
+      '@langchain/core': 1.2.4(@opentelemetry/api@1.10.0)(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1)
       js-tiktoken: 1.0.21
       openai: 6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76)
       zod: 3.25.76
@@ -5517,6 +5574,9 @@ snapshots:
       fastq: 1.20.1
 
   '@one-ini/wasm@0.1.1': {}
+
+  '@opentelemetry/api@1.10.0':
+    optional: true
 
   '@parcel/watcher-android-arm64@2.6.0':
     optional: true
@@ -5722,6 +5782,8 @@ snapshots:
   '@smithy/types@4.16.1':
     dependencies:
       tslib: 2.8.1
+
+  '@stablelib/base64@1.0.1': {}
 
   '@standard-schema/spec@1.1.0': {}
 
@@ -7382,6 +7444,8 @@ snapshots:
 
   fast-safe-stringify@2.1.1: {}
 
+  fast-sha256@1.3.0: {}
+
   fast-uri@3.1.9: {}
 
   fast-uri@4.2.3: {}
@@ -7877,6 +7941,11 @@ snapshots:
     dependencies:
       dequal: 2.0.3
 
+  json-schema-to-ts@3.1.1:
+    dependencies:
+      '@babel/runtime': 7.29.15
+      ts-algebra: 2.0.0
+
   json-schema-traverse@0.4.1: {}
 
   json-schema-traverse@1.0.0: {}
@@ -7891,10 +7960,11 @@ snapshots:
     dependencies:
       json-buffer: 3.0.1
 
-  langsmith@0.8.8(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1):
+  langsmith@0.8.8(@opentelemetry/api@1.10.0)(openai@6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76))(ws@8.21.1):
     dependencies:
       p-queue: 6.6.2
     optionalDependencies:
+      '@opentelemetry/api': 1.10.0
       openai: 6.49.0(@aws-sdk/credential-provider-node@3.972.76)(@smithy/signature-v4@5.6.12)(ws@8.21.1)(zod@3.25.76)
       ws: 8.21.1
 
@@ -8750,6 +8820,11 @@ snapshots:
     dependencies:
       type-fest: 0.7.1
 
+  standardwebhooks@1.3.0:
+    dependencies:
+      '@stablelib/base64': 1.0.1
+      fast-sha256: 1.3.0
+
   stats-gl@4.2.3(three@0.184.0):
     optionalDependencies:
       three: 0.184.0
@@ -8988,6 +9063,8 @@ snapshots:
     dependencies:
       punycode: 2.3.1
 
+  ts-algebra@2.0.0: {}
+
   ts-api-utils@2.5.0(typescript@5.6.3):
     dependencies:
       typescript: 5.6.3
@@ -9113,7 +9190,7 @@ snapshots:
       tsx: 4.23.1
       yaml: 2.9.0
 
-  vitest@4.1.12(@types/node@22.20.1)(jsdom@25.0.1)(vite@6.4.5(@types/node@22.20.1)(sass@1.102.0)(tsx@4.23.1)(yaml@2.9.0)):
+  vitest@4.1.12(@opentelemetry/api@1.10.0)(@types/node@22.20.1)(jsdom@25.0.1)(vite@6.4.5(@types/node@22.20.1)(sass@1.102.0)(tsx@4.23.1)(yaml@2.9.0)):
     dependencies:
       '@vitest/expect': 4.1.12
       '@vitest/mocker': 4.1.12(vite@6.4.5(@types/node@22.20.1)(sass@1.102.0)(tsx@4.23.1)(yaml@2.9.0))
@@ -9136,6 +9213,7 @@ snapshots:
       vite: 6.4.5(@types/node@22.20.1)(sass@1.102.0)(tsx@4.23.1)(yaml@2.9.0)
       why-is-node-running: 2.3.0
     optionalDependencies:
+      '@opentelemetry/api': 1.10.0
       '@types/node': 22.20.1
       jsdom: 25.0.1
     transitivePeerDependencies:
