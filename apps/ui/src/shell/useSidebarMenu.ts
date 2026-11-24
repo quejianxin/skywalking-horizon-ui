@@ -140,6 +140,7 @@ export function useSidebarMenu() {
       kind: 'admin',
       kicker: t('Admin'),
       links: [
+        { icon: 'ai', label: t('AI assistant'), to: '/admin/ai-settings', verb: 'ai-settings:read' },
         { icon: 'user', label: t('Users'), to: '/admin/users', verb: 'user:read' },
         { icon: 'set', label: t('Auth status'), to: '/admin/auth-status', verb: 'auth:read' },
         { icon: 'set', label: t('Roles & permissions'), to: '/admin/roles', verb: 'role:read' },

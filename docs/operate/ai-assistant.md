@@ -40,7 +40,11 @@ Crucially, that skill is **not immutable** — it is *your* configuration, edite
 
 The launcher — a floating **AI Assistant** button on the right edge, after login — shows for every signed-in user, so the assistant is discoverable across the product. Until you turn the feature on and point it at a model, the panel opens **read-only**: it explains what the assistant does and shows a short "ask your administrator to set it up" notice instead of a chat box. Who may actually use it once configured is controlled by RBAC — the `ai:read` permission, granted to every role by default; a user without it still sees the launcher but their request is rejected when sent.
 
-Configure it under the `ai:` block of `horizon.yaml`, or entirely via `HORIZON_AI_*` environment variables:
+管理员可在 **Admin → AI assistant** 配置开关、提供方、模型、地址、区域和 API 密钥。部署时设置 `HORIZON_AI_SETTINGS_FILE` 为服务进程可写的持久化文件路径；未设置时页面只读。保存后当前进程立即生效；此文件存储方式仅支持单个 Horizon 实例，不支持多实例共享配置。设置文件中的字段优先于 `horizon.yaml` 和环境变量；密钥不回显，目标地址、提供方或区域未变时留空保留原值，目标变更而未填写新密钥时会清除旧密钥。基础地址不能包含用户信息、查询参数或片段，也不要将密钥放入路径。设置文件包含密钥，须限制访问并使用持久化卷；仅拥有 `ai-settings:read` 的角色可以查看状态，修改需要 `ai-settings:write`。已存在的设置文件必须是权限为 `0600` 的普通文件，不可使用符号链接。恢复备份时，先在仅服务账户可写的持久化目录内恢复文件，再将文件所有者设为 Horizon 服务账户、权限设为 `0600`，最后启动服务。已存在的文件无法读取、权限过宽、损坏或字段不完整时服务拒绝启动，以免恢复旧密钥；应从受保护的备份恢复。文件不存在时管理页从禁用、无密钥的状态开始，需重新填写密钥；持久卷丢失时也不会恢复旧密钥。
+
+写模式只能把模型请求发往部署方批准的地址或区域。部署时用 `HORIZON_AI_ALLOWED_BASE_URLS` 列出允许的完整端点（逗号分隔，例如 `https://models.example.com/v1`），用 `HORIZON_AI_ALLOWED_BEDROCK_REGIONS` 列出允许的 AWS 区域（例如 `us-east-1,us-west-2`）。页面保存和管理页配置都不在名单内时保存会被拒绝；名单为空时管理页无法写入。名单只在进程启动时读取，修改后需重启。Bedrock 在托管模式下只使用获批区域的标准 AWS 端点，不跟随 SDK 的端点覆盖配置；OpenAI 兼容请求不跟随重定向。
+
+也可在 `horizon.yaml` 的 `ai:` 块或 `HORIZON_AI_*` 环境变量中配置基础值：
 
 | Field | Env var | Meaning |
 |---|---|---|
@@ -49,7 +53,7 @@ Configure it under the `ai:` block of `horizon.yaml`, or entirely via `HORIZON_A
 | `model` | `HORIZON_AI_MODEL` | Model id to use. |
 | `baseUrl` | `HORIZON_AI_BASE_URL` | Endpoint URL for `openai-compatible`. |
 | `region` | `HORIZON_AI_REGION` | AWS region for `bedrock`. Optional — falls back to `AWS_REGION` / `AWS_DEFAULT_REGION`. |
-| `apiKey` | `HORIZON_AI_API_KEY` | **Secret.** Set via env only — never commit it to the file. Redacted from logs. |
+| `apiKey` | `HORIZON_AI_API_KEY` | **密钥。** 基础配置通过环境变量提供；管理页保存的密钥存入设置文件，不得提交到仓库。 |
 | `systemPrompt` | `HORIZON_AI_SYSTEM_PROMPT` | Override the bundled system prompt. Blank → bundled default. |
 | `starters` | `HORIZON_AI_STARTERS` | Override the starter example chips (JSON array of strings). Blank → bundled defaults. |
 

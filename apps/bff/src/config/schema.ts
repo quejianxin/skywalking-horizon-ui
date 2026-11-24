@@ -649,8 +649,7 @@ const sourceMapsSchema = z
 // DeepSeek-direct, local models, AI gateways, Azure-OpenAI, or Claude behind a
 // gateway), configured with just model + baseUrl + apiKey. `provider` is only
 // set for a non-OpenAI-shaped SERVICE — today `bedrock` (AWS Converse + bearer).
-// The API key is a SECRET: set it via `${HORIZON_AI_API_KEY:}` env interpolation
-// only — never inline in the YAML — and it is redacted from logs.
+// 密钥由环境变量或管理页设置文件提供，不得直接写入 YAML，也不得记录到日志。
 // Env-overridable defaults let a file-less container enable the
 // feature with `HORIZON_AI_*` alone (mirrors sourceMaps / templates.mode).
 const aiEnabledDefault = process.env.HORIZON_AI_ENABLED === 'true';
@@ -686,8 +685,7 @@ const aiSchema = z
      *  from AWS_REGION / AWS_DEFAULT_REGION in the environment. Set it only to
      *  pin a region in Horizon config. */
     region: z.string().default(aiRegionDefault),
-    /** SECRET — env-only (`${HORIZON_AI_API_KEY:}`). For `bedrock` this is the
-     *  Bedrock bearer API key (ABSK…). Redacted from logs. */
+    /** 敏感信息：通过环境变量或管理页设置文件提供；Bedrock 使用 bearer API key（ABSK…）。 */
     apiKey: z.string().default(aiApiKeyDefault),
     // Inference params (temperature, output-token caps) are deliberately NOT
     // config knobs — the gateway / provider / model owns them. The agent fixes

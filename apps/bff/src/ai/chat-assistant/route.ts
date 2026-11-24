@@ -50,11 +50,14 @@ import type { ToolContext } from '../lib/tool-context.js';
 import type { StreamEvent } from '../lib/graphic-card.js';
 import { SECURITY_HEADERS, API_CACHE_CONTROL } from '../../util/security-headers.js';
 import { buildRequestAccess, type AccessDeps } from '../../rbac/request-access.js';
+import type { AiSettingsStore } from '../settings.js';
 
 export interface AiChatRouteDeps extends AuthDeps {
   fetch?: FetchLike;
   uiTemplateClient?: () => UITemplateClient;
   access?: AccessDeps;
+  /** 管理页保存的设置优先于 horizon.yaml / 环境变量，且无需重启。 */
+  settings: AiSettingsStore;
 }
 
 const chatBodySchema = z.object({
@@ -71,8 +74,8 @@ const DEFAULT_WINDOW_MIN = 60;
 export function registerAiRoutes(app: FastifyInstance, deps: AiChatRouteDeps): void {
   const auth = requireAuth(deps);
 
-  app.get('/api/ai/config', { preHandler: auth }, async (_req, reply) => {
-    const ai = deps.config.current.ai;
+  app.get('/api/ai/config', { preHandler: requireAuth(deps, { renewSession: false }) }, async (_req, reply) => {
+    const ai = deps.settings.effective();
     return reply.send({
       enabled: ai.enabled,
       ready: aiEffectivelyReady(ai),
@@ -87,7 +90,7 @@ export function registerAiRoutes(app: FastifyInstance, deps: AiChatRouteDeps): v
 
   app.post('/api/ai/chat', { preHandler: auth }, async (req: FastifyRequest, reply: FastifyReply) => {
     const cfg = deps.config.current;
-    const ai = cfg.ai;
+    const ai = deps.settings.effective();
     if (!ai.enabled) return reply.code(503).send({ error: 'ai_disabled' });
 
     const parsed = chatBodySchema.safeParse(req.body ?? {});

@@ -17,7 +17,7 @@
 <!-- Full-page /ai: a fullscreen route outside AppShell — history sidebar + wide
      conversation column. Same conversation + history as the docked drawer. -->
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import Icon from '@/components/icons/Icon.vue';
@@ -25,7 +25,8 @@ import ChatTranscript from './ChatTranscript.vue';
 import ChatComposer from './ChatComposer.vue';
 import ChatScopeBar from './ChatScopeBar.vue';
 import { useAuthStore } from '@/state/auth';
-import { useAiChat } from './useAiChat';
+import { isCurrentEpoch, sessionEpoch } from '@/state/sessionReset';
+import { refreshAiConfig, useAiChat } from './useAiChat';
 import { useAiConversations, type ConversationStatus } from './useAiConversations';
 import { useChatScroll } from './useChatScroll';
 import type { Conversation } from './types';
@@ -35,21 +36,13 @@ const router = useRouter();
 const auth = useAuthStore();
 const chat = useAiChat();
 const conv = useAiConversations();
-// This route is fullscreen (outside AppShell, so the launcher — which owns the
-// config probe + hydrate — isn't mounted). Load config + this user's history
-// here on mount AND whenever auth settles, so a reload before the session has
-// bootstrapped still hydrates history once the user is known.
-function loadHistory(): void {
-  void chat
-    .ensureConfig()
-    .then(() => conv.hydrate())
-    .then(() => {
-      savingHistory.value = conv.historyEnabled();
-      refreshUsage();
-    });
+const isChatVisible = computed(() => chat.ready.value && conv.historyReady.value);
+const canChat = computed(() => isChatVisible.value && !chat.configFailed.value);
+
+async function reloadAssistant(): Promise<void> {
+  if (await refreshAiConfig()) await conv.hydrate();
 }
-onMounted(loadHistory);
-watch(() => auth.isAuthenticated, loadHistory);
+watch(() => auth.user, (user) => { if (user) void reloadAssistant(); }, { immediate: true });
 
 const ordered = computed<Conversation[]>(() => [...conv.conversations.value].sort((a, b) => b.updatedAt - a.updatedAt));
 
@@ -67,14 +60,17 @@ function statusHint(s: ConversationStatus): string {
     : t('A turn is still in flight — the newest state is not saved yet.');
 }
 
-const savingHistory = ref(conv.historyEnabled());
+const savingHistory = ref(false);
 const confirmingClear = ref(false);
 const usedBytes = ref(0);
 const maxBytes = computed(() => chat.history.value?.clientMaxBytes ?? 0);
 const showUnencryptedWarning = computed(() => savingHistory.value && chat.history.value?.mode === 'client');
 
 function refreshUsage(): void {
-  void conv.usageBytes().then((b) => (usedBytes.value = b));
+  const epoch = sessionEpoch();
+  void conv.usageBytes().then((bytes) => {
+    if (isCurrentEpoch(epoch)) usedBytes.value = bytes;
+  });
 }
 function toggleSaving(): void {
   savingHistory.value = !savingHistory.value;
@@ -96,14 +92,15 @@ function fmtSize(bytes: number): string {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(bytes < 10 * 1024 ? 1 : 0)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
-// Refresh usage when a turn finishes — covers growth WITHIN a conversation, not
-// just a change in conversation count.
-watch(
-  () => conv.streaming.value,
-  (v) => {
-    if (!v) refreshUsage();
-  },
-);
+watch(conv.historyReady, (ready) => {
+  savingHistory.value = ready && conv.historyEnabled();
+  confirmingClear.value = false;
+  usedBytes.value = 0;
+  if (ready) refreshUsage();
+}, { immediate: true });
+watch(conv.streaming, (streaming) => {
+  if (!streaming && conv.historyReady.value) refreshUsage();
+});
 const messages = computed(() => conv.current.value?.messages ?? []);
 const body = ref<HTMLElement | null>(null);
 // Pin the message you just sent to the top of the scroll area; the answer
@@ -115,7 +112,7 @@ useChatScroll({
 });
 
 function onSend(text: string): void {
-  void conv.send(text);
+  if (canChat.value) void conv.send(text);
 }
 function dockToSide(): void {
   void router.push('/').then(() => chat.openPanel());
@@ -131,7 +128,7 @@ function when(ts: number): string {
       <span class="aifp__mark" aria-hidden="true"><Icon name="ai" :size="16" /></span>
       <strong class="aifp__brand">{{ t('AI Assistant') }}</strong>
       <div class="aifp__top-acts">
-        <template v-if="chat.ready.value">
+        <template v-if="canChat">
           <ChatScopeBar />
           <button type="button" class="aifp__btn" @click="conv.newChat()"><Icon name="plus" :size="13" />{{ t('New chat') }}</button>
         </template>
@@ -141,7 +138,11 @@ function when(ts: number): string {
 
     <!-- Read-only setup state: the assistant is reachable by everyone, but can
          only chat once an admin has configured a model provider. -->
-    <div v-if="!chat.ready.value" class="aifp__setup">
+    <div v-if="chat.configFailed.value" class="aifp__notice" role="status">
+      {{ t('Could not load') }}
+      <button type="button" class="aifp__btn" @click="reloadAssistant">{{ t('Retry') }}</button>
+    </div>
+    <div v-if="!chat.ready.value && chat.configLoaded.value && !chat.configFailed.value" class="aifp__setup">
       <span class="aifp__setup-mark" aria-hidden="true"><Icon name="ai" :size="34" /></span>
       <h2 class="aifp__setup-title">{{ t('The AI Assistant is not set up yet') }}</h2>
       <p class="aifp__setup-text">
@@ -152,7 +153,7 @@ function when(ts: number): string {
       </p>
     </div>
 
-    <div v-else class="aifp__main">
+    <div v-else-if="isChatVisible" class="aifp__main">
       <aside class="aifp__hist">
         <div class="aifp__hist-head">{{ t('History') }}</div>
         <div class="aifp__hist-list">
@@ -211,11 +212,12 @@ function when(ts: number): string {
         </div>
         <footer class="aifp__composer">
           <div class="aifp__col">
-            <ChatComposer :streaming="conv.streaming.value" @send="onSend" @stop="conv.stop()" />
+            <ChatComposer :disabled="!canChat" :streaming="conv.streaming.value" @send="onSend" @stop="conv.stop()" />
           </div>
         </footer>
       </section>
     </div>
+    <div v-else-if="!chat.configFailed.value" class="aifp__setup" role="status">{{ t('Loading…') }}</div>
   </div>
 </template>
 
@@ -231,6 +233,15 @@ function when(ts: number): string {
     var(--sw-bg-0);
   color: var(--sw-fg-0);
   font-family: var(--sw-sans);
+}
+
+.aifp__notice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px;
+  color: var(--sw-fg-1);
 }
 
 .aifp__top {

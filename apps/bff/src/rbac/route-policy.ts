@@ -363,6 +363,10 @@ export const ROUTE_POLICY: Record<string, RoutePolicy> = {
   'GET /api/admin/auth-status':                    'auth:read',
   'POST /api/admin/auth-status/probe':             'auth:read',
   'GET /api/admin/users':                          'user:read',
+
+  // AI 助手模型配置。读接口只返回非敏感字段，写接口可更换密钥，故读写分权。
+  'GET /api/admin/ai-settings':                    'ai-settings:read',
+  'PUT /api/admin/ai-settings':                    'ai-settings:write',
 };
 
 /**

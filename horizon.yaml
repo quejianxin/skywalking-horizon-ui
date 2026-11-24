@@ -243,15 +243,16 @@ sourceMaps:
 #     id (e.g. deepseek.v3.2, us.anthropic.claude-...), apiKey = the Bedrock bearer
 #     key (ABSK…); region falls back to AWS_REGION / AWS_DEFAULT_REGION when blank.
 # Set `provider` only for a non-OpenAI-shaped service (bedrock). The api key is a
-# SECRET — env-only, never bake it into this file. Inference params (temperature,
+# 密钥可通过环境变量或管理页设置文件提供，不得直接写入此文件。Inference params (temperature,
 # output caps) are owned by the gateway/provider — not exposed here.
+# 设置 HORIZON_AI_SETTINGS_FILE 可启用管理页写入；该文件包含密钥，须持久化并限制访问。
 ai:
   enabled: ${HORIZON_AI_ENABLED:false}
   provider: "${HORIZON_AI_PROVIDER:openai-compatible}"
   model: "${HORIZON_AI_MODEL:}"
   baseUrl: "${HORIZON_AI_BASE_URL:}"                # openai-compatible
   region: "${HORIZON_AI_REGION:}"                   # bedrock only; blank → AWS_REGION/AWS_DEFAULT_REGION env
-  apiKey: "${HORIZON_AI_API_KEY:}"                  # SECRET — env-only, never commit
+  apiKey: "${HORIZON_AI_API_KEY:}"                  # 敏感信息，不得提交
   # Prompt overrides — blank = use the bundled defaults. For a multi-line system
   # prompt, replace the value with a YAML block scalar ( |- ). starters: JSON array.
   systemPrompt: "${HORIZON_AI_SYSTEM_PROMPT:}"

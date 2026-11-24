@@ -88,6 +88,11 @@ export const VERBS = {
    *  the caller's read scopes — never widens them. */
   aiRead: 'ai:read',
 
+  /** 管理页 `/admin/ai-settings`：读取与修改模型提供方配置。写权限可更换密钥，
+   *  因此与 `ai:read`（使用助手）分开授权，默认只有 admin 角色持有。 */
+  aiSettingsRead: 'ai-settings:read',
+  aiSettingsWrite: 'ai-settings:write',
+
   /** Connect an external agent over MCP. Separate from `ai:read` because the
    *  two differ in who runs the model: the assistant sends the conversation to
    *  the provider Horizon is configured with, while MCP leaves the model on
@@ -148,7 +153,7 @@ export const RESERVED_VERBS: readonly Verb[] = [
  * entry is a place the grammar stops being uniform, and that is only worth it
  * where a wildcard grant would leak something an operator would not expect.
  */
-export const WILDCARD_EXEMPT_VERBS: ReadonlySet<Verb> = new Set<Verb>(['audit:read']);
+export const WILDCARD_EXEMPT_VERBS: ReadonlySet<Verb> = new Set<Verb>(['audit:read', 'ai-settings:read', 'ai-settings:write']);
 
 /**
  * Verbs retired by the per-page Dashboard-setup split, mapped to what they

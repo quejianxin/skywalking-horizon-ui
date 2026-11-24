@@ -26,6 +26,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { BffClient } from './client';
 import { entryKey } from '@/utils/layerRoute';
 import { pushEvent, resetEventLog, useEventLog } from '@/controls/eventLog';
+import { resetSessionState } from '@/state/sessionReset';
 
 describe('BffClient — the 401 breadcrumb survives the session reset it triggers', () => {
   beforeEach(() => {
@@ -53,6 +54,20 @@ describe('BffClient — the 401 breadcrumb survives the session reset it trigger
     // Everything the previous session logged is still gone — only the
     // explanation survives.
     expect(texts).toHaveLength(1);
+  });
+
+  it('来自旧会话的 401 不触发当前会话退出', async () => {
+    let reply!: (response: Response) => void;
+    vi.stubGlobal('fetch', vi.fn(() => new Promise<Response>((resolve) => { reply = resolve; })));
+    const on401 = vi.fn();
+    const client = new BffClient();
+    client.setOn401(on401);
+    const pending = client.ai.config();
+    resetSessionState();
+    reply(new Response(null, { status: 401 }));
+    await expect(pending).rejects.toMatchObject({ status: 401 });
+    expect(on401).not.toHaveBeenCalled();
+    expect(useEventLog().all.value).toHaveLength(0);
   });
 
   it('the multipart path logs it on the same side of the hook', async () => {

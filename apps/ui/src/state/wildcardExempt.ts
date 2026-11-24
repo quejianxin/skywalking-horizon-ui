@@ -29,4 +29,4 @@
  *
  * `wildcardExemptVerbs.test.ts` fails if this drifts from the BFF's set.
  */
-export const WILDCARD_EXEMPT_VERBS: ReadonlySet<string> = new Set(['audit:read']);
+export const WILDCARD_EXEMPT_VERBS: ReadonlySet<string> = new Set(['audit:read', 'ai-settings:read', 'ai-settings:write']);

@@ -38,7 +38,7 @@ export interface AiConfigResponse {
 export class AiApi {
   constructor(private readonly bff: BffClient) {}
 
-  config(): Promise<AiConfigResponse> {
-    return this.bff.request<AiConfigResponse>('GET', '/api/ai/config');
+  config(signal?: AbortSignal): Promise<AiConfigResponse> {
+    return this.bff.request<AiConfigResponse>('GET', '/api/ai/config', undefined, undefined, signal);
   }
 }

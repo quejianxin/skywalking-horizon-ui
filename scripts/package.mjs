@@ -75,7 +75,11 @@ step('Building BFF (esbuild bundle)');
 run('pnpm --filter @skywalking-horizon-ui/bff build');
 
 step('Building UI (vite production build)');
-run('pnpm --filter @skywalking-horizon-ui/ui build');
+run('pnpm --filter @skywalking-horizon-ui/ui run type-check');
+run('pnpm --filter @skywalking-horizon-ui/ui run build-only');
+if (!existsSync(resolve(root, 'apps/ui/dist/index.html'))) {
+  throw new Error('UI 构建未生成 dist/index.html');
+}
 
 // The ui:// card bundle — a SECOND vite build with a different output shape
 // (one self-contained HTML file an MCP host mounts in a sandbox). Part of

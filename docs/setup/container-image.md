@@ -4,26 +4,13 @@ Horizon UI ships a single multi-arch container image (linux/amd64 + linux/arm64)
 
 ## Where to get it
 
-Registry: **GitHub Container Registry (GHCR)** at `ghcr.io/apache/skywalking-horizon-ui`.
-
-| Tag | Points at | Use case |
-|---|---|---|
-| `<40-char-sha>` | Exact commit. Immutable. | **Production.** Pin to a SHA so deploys are reproducible. |
-| `X.Y.Z` | A released version. | Stable release. Same image as the SHA it was built from. |
-| `X.Y` | Latest released patch on a minor line. Moves over time. | Track a minor release line. |
-| `latest` | The newest released version. Moves. | Demos / dev only — do not pin production to `latest`. |
-| `main` | Head of `main`. Moves on every merge. | Smoke-test the development branch. |
-
-In the examples on this page, replace `<version>` with the release you run.
+从 [PDA fork](https://github.com/quejianxin/skywalking-horizon-ui) 检出目标分支，在仓库根目录构建本地镜像：
 
 ```sh
-docker pull ghcr.io/apache/skywalking-horizon-ui:<version>
-docker pull ghcr.io/apache/skywalking-horizon-ui:<sha>
+docker build -t pda-horizon-ui:local .
 ```
 
-The full commit SHA is the canonical, immutable identifier. Moving tags are conveniences that point at the same SHA-built image.
-
-Pushing a `vX.Y.Z` git tag publishes the `:<sha>` image only — that tag is a release *candidate* until the Apache release vote passes. The `X.Y.Z`, `X.Y` and `latest` tags, and the Docker Hub mirror, are attached afterwards, when the release is promoted. `latest` moves only if the promoted version is the highest one released, so publishing a patch on an older line never drags it backwards.
+本地标签不代表镜像已经发布；生产环境应将自行构建并验证的镜像发布到受控仓库，使用不可变摘要部署。
 
 ## Image layout
 
@@ -94,6 +81,9 @@ Scalar vars take a plain value; **list / object vars take a JSON string** (injec
 | `HORIZON_DEBUG_LOG_ENABLED` | `false` | bool | OAP wire debug log. |
 | `HORIZON_DEBUG_LOG_MAX_BODY_CHARS` | `8192` | int | Wire-log body truncation. |
 | `HORIZON_DEBUG_LOG_REDACT_AUTH` | `true` | bool | Redact auth headers in the wire log. |
+| `HORIZON_AI_SETTINGS_FILE` | (none) | path | 管理页设置文件路径；须挂载持久化目录并限制访问，未设置时页面只读。参见 [AI Assistant](../operate/ai-assistant.md)。 |
+| `HORIZON_AI_ALLOWED_BASE_URLS` | (none) | list | 管理页可写入的 OpenAI 兼容端点完整地址，逗号分隔；未列入的保存会被拒绝。 |
+| `HORIZON_AI_ALLOWED_BEDROCK_REGIONS` | (none) | list | 管理页可写入的 Bedrock AWS 区域，逗号分隔。 |
 | `HORIZON_AI_ENABLED` | `false` | bool | AI assistant master switch. See [AI Assistant](../operate/ai-assistant.md). |
 | `HORIZON_AI_PROVIDER` | `openai-compatible` | `openai-compatible` \| `bedrock` | AI transport. Set `bedrock` only for Amazon Bedrock. |
 | `HORIZON_AI_MODEL` | (none) | string | Model id (for `bedrock`, the Bedrock model / inference-profile id). |
@@ -114,7 +104,7 @@ docker run --rm -p 8081:8081 \
   -e HORIZON_OAP_QUERY_URL=http://oap:12800 \
   -e HORIZON_OAP_ADMIN_URL=http://oap:17128 \
   -e HORIZON_AUTH_LOCAL_USERS='[{"username":"admin","passwordHash":"'"$(…cli:hash…)"'","roles":["admin"]}]' \
-  ghcr.io/apache/skywalking-horizon-ui:<version>
+  pda-horizon-ui:local
 ```
 
 To run standalone on the bundled templates (without Horizon's OAP 11 `/ui-management/templates*` REST dependency), add `-e HORIZON_TEMPLATES_MODE=readonly` — dashboards render from the local bundle and the config surface is read-only (the OAP query host is still required for metrics / traces / logs). OAP 10 has its own legacy GraphQL template API, but Horizon does not consume it.
@@ -131,7 +121,7 @@ docker run -d --name horizon \
   -p 8081:8081 \
   -e NODE_OPTIONS=--max-old-space-size=1536 \
   -v "$PWD/horizon.yaml:/app/horizon.yaml:ro" \
-  ghcr.io/apache/skywalking-horizon-ui:<version>
+  pda-horizon-ui:local
 ```
 
 ## How to load `horizon.yaml` into the container
@@ -147,7 +137,7 @@ docker run -d \
   --name horizon \
   -p 8081:8081 \
   -v "$PWD/horizon.yaml:/app/horizon.yaml:ro" \
-  ghcr.io/apache/skywalking-horizon-ui:<version>
+  pda-horizon-ui:local
 ```
 
 Notes:
@@ -160,7 +150,7 @@ Notes:
 For immutable single-tenant deployments, build a child image that includes your config:
 
 ```dockerfile
-FROM ghcr.io/apache/skywalking-horizon-ui:<version>
+FROM pda-horizon-ui:local
 COPY horizon.yaml /app/horizon.yaml
 ```
 
@@ -228,7 +218,7 @@ spec:
         fsGroup: 101
       containers:
         - name: horizon
-          image: ghcr.io/apache/skywalking-horizon-ui:<version>
+          image: pda-horizon-ui:local
           ports:
             - containerPort: 8081
           envFrom:
@@ -274,7 +264,7 @@ docker run -d --name horizon \
   -p 8081:8081 \
   -v "$PWD/horizon.yaml:/app/horizon.yaml:ro" \
   -v horizon-state:/data \
-  ghcr.io/apache/skywalking-horizon-ui:<version>
+  pda-horizon-ui:local
 ```
 
 Without a mounted volume the writes still land in the container's writable layer at `/data/` (ephemeral, but at least non-failing). Mounting a volume is what makes them durable.

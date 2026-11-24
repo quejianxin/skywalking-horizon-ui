@@ -20,9 +20,9 @@
 // Persists to localStorage, live-syncs across tabs.
 import { computed, ref, type ComputedRef, type Ref } from 'vue';
 import { useAuthStore } from '@/state/auth';
-import { onSessionReset } from '@/state/sessionReset';
+import { isCurrentEpoch, onSessionReset, sessionEpoch } from '@/state/sessionReset';
 import { createHistoryStore, noopHistory, historyEnabledPref, setHistoryEnabledPref, type HistoryStore } from './historyStore';
-import { aiHistorySettings } from './useAiChat';
+import { aiHistorySettings, ensureAiConfig } from './useAiChat';
 import { streamAnswer, type AiTurn, type AiStreamRange } from './aiStream';
 import { AI_TIME_PRESETS, aiTimePresetId } from './scope';
 import type { Block, Conversation, ChatMessage, ProposalBlock, ProposalStatus } from './types';
@@ -106,8 +106,8 @@ let streamController: AbortController | null = null;
 let store: HistoryStore = noopHistory;
 let owner = '';
 let storeIsReal = false;
-let loadedOwner: string | null = null;
-let loadedReal = false;
+const historyReady = ref(false);
+let pendingHydration: Promise<void> | null = null;
 
 function uid(): string {
   return typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `id-${Date.now()}-${Math.round(Math.random() * 1e9)}`;
@@ -118,46 +118,38 @@ function applyLoaded(loaded: Conversation[]): void {
   if (!loaded.some((c) => c.id === currentId.value)) currentId.value = loaded[0]?.id ?? null;
 }
 
-function rebuildStore(): boolean {
+function rebuildStore(): void {
   const settings = aiHistorySettings();
   storeIsReal = historyEnabledPref(owner) && !!settings && !!owner;
   store = storeIsReal && settings ? createHistoryStore(settings.mode, { maxBytes: settings.maxBytes }) : noopHistory;
-  return storeIsReal;
 }
 
-// Build the store for the current user + config and load their history. Loads on
-// first run, owner change, or when a real store first becomes usable (config
-// arrived after an initial no-op hydrate). Call after ensureConfig.
-async function hydrate(): Promise<void> {
-  const nextOwner = useAuthStore().user?.username ?? '';
-  owner = nextOwner;
-  const real = rebuildStore();
-  if (nextOwner === loadedOwner && !(real && !loadedReal)) return;
-  const loaded = await store.load(nextOwner);
-  if (owner !== nextOwner) return; // user switched during the load — discard the stale result
-  loadedOwner = nextOwner;
-  loadedReal = real;
-  applyLoaded(loaded);
+function hydrate(): Promise<void> {
+  if (pendingHydration) return pendingHydration;
+  const nextOwner = useAuthStore().user?.username;
+  if (!nextOwner || historyReady.value) return Promise.resolve();
+  const epoch = sessionEpoch();
+  pendingHydration = (async () => {
+    if (!(await ensureAiConfig()) || !isCurrentEpoch(epoch)) return;
+    owner = nextOwner;
+    rebuildStore();
+    const loaded = await store.load(nextOwner);
+    if (!isCurrentEpoch(epoch)) return;
+    applyLoaded(loaded);
+    historyReady.value = true;
+  })().finally(() => {
+    if (isCurrentEpoch(epoch)) pendingHydration = null;
+  });
+  return pendingHydration;
 }
 
-// Every store mutation runs through ONE chain. `save` is a read-modify-write
-// over the WHOLE owner set, so a save racing a clear/remove resurrects rows that
-// were just deleted. Queued tasks also read the CURRENT list when they RUN, not
-// when they were queued, so a save enqueued before a Clear all writes the
-// post-clear truth instead of its stale snapshot.
-let mutations: Promise<unknown> = Promise.resolve();
-function enqueue<T>(task: () => Promise<T>): Promise<T> {
-  const run = mutations.then(task, task);
-  mutations = run.then(
-    () => undefined,
-    () => undefined,
-  );
+// 串行执行历史写入；同一用户名重新登录后，排队中的旧操作也不能执行。
+let mutations = Promise.resolve();
+function enqueue(epoch: number, task: () => Promise<void>): Promise<void> {
+  const run = mutations.then(() => (isCurrentEpoch(epoch) ? task() : undefined));
+  mutations = run.catch(() => undefined);
   return run;
 }
-
-// Persist immediately (send() persists once per finished turn, not per token),
-// notifying other tabs only when the write was real (a no-op store must not make
-// a peer reload to empty).
 /** Per-conversation persistence state, keyed by uuid. Runtime only — never
  *  stored. `active` = a turn is in flight or there are unwritten changes;
  *  `saved` = written to the browser store; `conflicted` = the stored copy
@@ -168,28 +160,28 @@ function setStatus(id: string, s: ConversationStatus): void {
   status.value = { ...status.value, [id]: s };
 }
 
-// Write ONE conversation, by its uuid. The store is keyed per conversation, so
-// this touches only that row: it cannot drop, resurrect or reorder anyone
-// else's, which is what the old whole-collection save could do.
-function persist(target?: Conversation): void {
+function hasConversation(conv: Conversation): boolean {
+  return conversations.value.includes(conv);
+}
+
+// 只写目标会话；排队期间删除或替换的会话不能被旧快照恢复。
+function persist(conv: Conversation): void {
+  const epoch = sessionEpoch();
   const own = owner;
-  void enqueue(async () => {
-    if (own !== owner) return; // user switched while this was queued
-    const conv = target ?? current.value;
-    if (!conv) return;
+  const canPublish = () => isCurrentEpoch(epoch) && hasConversation(conv);
+  void enqueue(epoch, async () => {
+    if (!hasConversation(conv)) return;
     const s = store;
     const { conflicted } = await s.upsert(own, [conv]);
-    if (own !== owner) return;
+    if (!canPublish()) return;
     if (conflicted.length) {
-      // Nothing was written. Leave the conversation flagged so the operator can
-      // choose; re-persisting on the next turn will conflict again until they do.
       setStatus(conv.id, 'conflicted');
       return;
     }
     setStatus(conv.id, 'saved');
+    if (s !== store) return;
     const evicted = await s.enforceBudget(own);
-    if (own !== owner || !evicted.length) return;
-    // Only ids the budget actually dropped — no whole-set reconcile to get wrong.
+    if (!isCurrentEpoch(epoch) || s !== store || !evicted.length) return;
     const gone = new Set(evicted);
     conversations.value = conversations.value.filter((c) => !gone.has(c.id));
     if (currentId.value && gone.has(currentId.value)) {
@@ -200,12 +192,6 @@ function persist(target?: Conversation): void {
 
 const current = computed<Conversation | null>(() => conversations.value.find((c) => c.id === currentId.value) ?? null);
 
-// An identity change must leave none of the previous operator's transcript —
-// their prompts and the telemetry captured into the blocks — in memory:
-// `hydrate()` replaces the list only once the NEW owner's rows have loaded, and
-// the panel renders whatever is here until then. `loadedOwner` is cleared for
-// the same-person-signs-back-in case: hydrate would otherwise treat their
-// (now emptied) history as already loaded and never re-read it.
 onSessionReset(() => {
   streamController?.abort();
   streamController = null;
@@ -213,13 +199,11 @@ onSessionReset(() => {
   conversations.value = [];
   currentId.value = null;
   status.value = {};
-  // Queued mutations read `store` when they RUN, so the persist that the
-  // aborted turn enqueues lands on the no-op store, not the old owner's rows.
   store = noopHistory;
   storeIsReal = false;
   owner = '';
-  loadedOwner = null;
-  loadedReal = false;
+  pendingHydration = null;
+  historyReady.value = false;
 });
 
 function newChat(): Conversation {
@@ -237,48 +221,47 @@ function select(id: string): void {
   currentId.value = id;
 }
 
-// Bind the owner + store at CALL time. The queued closure would otherwise read
-// the module-level values when it eventually RUNS, so an account switch while
-// the queue drains would apply Alice's delete/clear to Bob's history.
 async function remove(id: string): Promise<void> {
+  const epoch = sessionEpoch();
   const own = owner;
   const s = store;
   conversations.value = conversations.value.filter((c) => c.id !== id);
   if (currentId.value === id) currentId.value = conversations.value[0]?.id ?? null;
-  await enqueue(() => s.remove(own, id));
+  await enqueue(epoch, () => s.remove(own, id));
 }
 
 async function clearAll(): Promise<void> {
+  const epoch = sessionEpoch();
   const own = owner;
   const s = store;
   conversations.value = [];
   currentId.value = null;
-  await enqueue(() => s.clear(own));
+  await enqueue(epoch, () => s.clear(own));
 }
 
-// On: merge stored history with the session's in-memory conversations, then
-// persist — never overwrite the store with a possibly-empty in-memory list. Off:
-// switch to no-op; existing records stay until Clear all.
+// 关闭只暂停持久化；重新开启时合并本次会话与之前保存的记录。
 async function setHistoryEnabled(on: boolean): Promise<void> {
+  const epoch = sessionEpoch();
   const own = owner;
   setHistoryEnabledPref(own, on);
   rebuildStore();
-  if (on && storeIsReal) {
-    const s = store;
-    const stored = await s.load(own);
-    // The load is async: if the account switched while it was in flight, the
-    // in-memory list is now the NEW user's — merging would file Alice's rows
-    // under Bob.
-    if (own !== owner) return;
-    const haveIds = new Set(conversations.value.map((c) => c.id));
-    const merged = [...conversations.value, ...stored.filter((c) => !haveIds.has(c.id))].sort((a, b) => b.updatedAt - a.updatedAt);
-    applyLoaded(merged);
-    void enqueue(() => s.upsert(own, merged));
-  }
+  if (!on || !storeIsReal) return;
+  const s = store;
+  const stored = await s.load(own);
+  if (!isCurrentEpoch(epoch) || s !== store) return;
+  const haveIds = new Set(conversations.value.map((c) => c.id));
+  const merged = [...conversations.value, ...stored.filter((c) => !haveIds.has(c.id))].sort((a, b) => b.updatedAt - a.updatedAt);
+  applyLoaded(merged);
+  await enqueue(epoch, async () => {
+    if (s === store) await s.upsert(own, merged.filter(hasConversation));
+  });
 }
 
-function usageBytes(): Promise<number> {
-  return store.usageBytes(owner);
+async function usageBytes(): Promise<number> {
+  const epoch = sessionEpoch();
+  const s = store;
+  const bytes = await s.usageBytes(owner);
+  return isCurrentEpoch(epoch) && s === store ? bytes : 0;
 }
 
 function ensureCurrent(): Conversation {
@@ -306,6 +289,7 @@ function applyTool(blocks: Block[], name: string, status: 'running' | 'done' | '
 async function send(text: string): Promise<void> {
   const q = text.trim();
   if (!q || streaming.value) return;
+  const epoch = sessionEpoch();
   const conv = ensureCurrent();
   if (!conv.title) conv.title = q.slice(0, 60);
 
@@ -323,6 +307,7 @@ async function send(text: string): Promise<void> {
   streamController = new AbortController();
   try {
     for await (const ev of streamAnswer(history, rangeForCurrentPreset(), streamController.signal)) {
+      if (!isCurrentEpoch(epoch)) break;
       if (ev.type === 'token') appendToken(assistant.blocks, ev.text);
       else if (ev.type === 'tool') applyTool(assistant.blocks, ev.name, ev.status);
       // Stamp the capture time so a reloaded (frozen) figure documents WHEN its
@@ -345,12 +330,14 @@ async function send(text: string): Promise<void> {
       else if (ev.type === 'done') break;
     }
   } finally {
-    streamController = null;
-    assistant.streaming = false;
-    assistant.at = Date.now(); // reply-finished time
-    streaming.value = false;
-    conv.updatedAt = Date.now();
-    persist(conv);
+    if (isCurrentEpoch(epoch)) {
+      streamController = null;
+      assistant.streaming = false;
+      assistant.at = Date.now();
+      streaming.value = false;
+      conv.updatedAt = Date.now();
+      persist(conv);
+    }
   }
 }
 
@@ -365,37 +352,45 @@ function stop(): void {
   streamController?.abort();
 }
 
-/** Update a proposal decision card's outcome (approve/dismiss). The store owns
- *  the conversation, so the mutation + persistence live here, not in the card. */
-function resolveProposal(
-  block: ProposalBlock,
-  status: ProposalStatus,
-  patch?: { taskId?: string; error?: string },
-): void {
-  block.status = status;
-  if (patch?.taskId !== undefined) block.taskId = patch.taskId;
-  if (patch?.error !== undefined) block.error = patch.error;
+type ResolveProposal = (
+  decision: Exclude<ProposalStatus, 'pending' | 'proposed'>,
+  patch?: Pick<ProposalBlock, 'taskId' | 'error'>,
+) => void;
+
+/** 审批前绑定原卡片和登录代次；允许切换会话，但不修改删除或替换后的卡片。 */
+function captureProposal(block: ProposalBlock): ResolveProposal | undefined {
+  if (block.status !== 'pending') return;
+  const epoch = sessionEpoch();
   const conv = current.value;
-  if (conv) conv.updatedAt = Date.now();
-  persist(conv ?? undefined);
+  const message = conv?.messages.find((m) => m.blocks.includes(block));
+  if (!conv || !message) return;
+  return (decision, patch) => {
+    if (!isCurrentEpoch(epoch) || !hasConversation(conv)) return;
+    if (block.status !== 'pending' || !message.blocks.includes(block)) return;
+    message.blocks = message.blocks.map((b) => (b === block ? { ...block, ...patch, status: decision } : b));
+    conv.updatedAt = Date.now();
+    persist(conv);
+  };
 }
 
 /** Operator's answer to a conflict. `mine` force-writes this tab's version;
  *  `theirs` reloads the stored one, discarding the local divergence. */
 async function resolveConflict(id: string, choice: 'mine' | 'theirs'): Promise<void> {
+  const epoch = sessionEpoch();
   const own = owner;
   const s = store;
-  await enqueue(async () => {
-    if (own !== owner) return;
+  await enqueue(epoch, async () => {
+    if (s !== store) return;
+    const conv = conversations.value.find((c) => c.id === id);
+    if (!conv) return;
+    const canPublish = () => isCurrentEpoch(epoch) && s === store && hasConversation(conv);
     if (choice === 'mine') {
-      const conv = conversations.value.find((c) => c.id === id);
-      if (!conv) return;
       await s.upsert(own, [conv], { force: true });
+      if (!canPublish()) return;
     } else {
       const stored = await s.loadOne(own, id);
-      if (own !== owner) return;
-      if (!stored) return;
-      conversations.value = conversations.value.map((c) => (c.id === id ? stored : c));
+      if (!canPublish() || !stored) return;
+      conversations.value = conversations.value.map((c) => (c === conv ? stored : c));
     }
     setStatus(id, 'saved');
   });
@@ -408,11 +403,12 @@ export interface AiConversations {
   streaming: Ref<boolean>;
   send: (text: string) => Promise<void>;
   stop: () => void;
-  resolveProposal: (block: ProposalBlock, status: ProposalStatus, patch?: { taskId?: string; error?: string }) => void;
+  captureProposal: (block: ProposalBlock) => ResolveProposal | undefined;
   newChat: () => Conversation;
   select: (id: string) => void;
   remove: (id: string) => Promise<void>;
   clearAll: () => Promise<void>;
+  historyReady: Ref<boolean>;
   hydrate: () => Promise<void>;
   setHistoryEnabled: (on: boolean) => Promise<void>;
   historyEnabled: () => boolean;
@@ -432,11 +428,12 @@ export function useAiConversations(): AiConversations {
     streaming,
     send,
     stop,
-    resolveProposal,
+    captureProposal,
     newChat,
     select,
     remove,
     clearAll,
+    historyReady,
     hydrate,
     setHistoryEnabled,
     historyEnabled: () => historyEnabledPref(owner),

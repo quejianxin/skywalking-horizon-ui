@@ -99,7 +99,7 @@ docker run -d --name horizon \
   -p 8081:8081 \
   -v "$PWD/horizon.yaml:/app/horizon.yaml:ro" \
   -v horizon-state:/data \
-  ghcr.io/apache/skywalking-horizon-ui:<version>
+  pda-horizon-ui:local
 ```
 
 See [Container Image](container-image.md) for image tags, Kubernetes YAML, log handling, and probes.

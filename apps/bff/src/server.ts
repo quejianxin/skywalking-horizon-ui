@@ -64,6 +64,7 @@ import { registerMqeExecRoute } from './http/query/mqe-exec.js';
 import { registerAlarmsQueryRoutes } from './http/query/alarms.js';
 import { registerAlarmPagesRoute } from './http/query/alarm-pages.js';
 import { registerAiRoutes } from './ai/chat-assistant/route.js';
+import { AiSettingsStore } from './ai/settings.js';
 import { registerMcpRoutes } from './ai/mcp/route.js';
 import { registerOAuthRoutes } from './oauth/route.js';
 import { RoleResolver } from './user/roles.js';
@@ -101,6 +102,7 @@ import { registerAlarmRulesRoutes } from './http/admin/alarm-rules.js';
 import { registerOverviewTemplatesAdminRoutes } from './http/admin/overview-templates.js';
 import { registerAuthStatusRoutes } from './http/admin/auth-status.js';
 import { registerAdminUsersRoute } from './http/admin/users.js';
+import { registerAiSettingsAdminRoutes } from './http/admin/ai-settings.js';
 import { registerSourceMapRoutes } from './http/admin/source-maps.js';
 import { registerAuthHealthRoute } from './http/auth-health.js';
 import { registerColdStageHook } from './util/duration.js';
@@ -266,6 +268,11 @@ const oauthTokens = new OAuthTokenResolver(source, roleResolver);
 const audit = createAuditService({ audit: source.current.audit });
 
 const authDeps = { config: source, sessions, tokens, oauthTokens, audit };
+// AI 运行期设置：管理页把变更写入该文件，保存后立即生效；未配置文件时整块只读。
+const aiSettings = new AiSettingsStore({
+  filePath: process.env.HORIZON_AI_SETTINGS_FILE ?? '',
+  base: () => source.current.ai,
+});
 // Wire-level OAP debug log (`debugLog` in horizon.yaml) — reads the live
 // config per call, so `enabled` / `file` / redaction all hot-reload.
 wireLog.init(() => source.current.debugLog);
@@ -412,7 +419,9 @@ registerAiRoutes(app, {
   ...authDeps,
   uiTemplateClient: () => buildOapClients(source.current).uiTemplate(),
   access: accessDeps,
+  settings: aiSettings,
 });
+registerAiSettingsAdminRoutes(app, { ...authDeps, settings: aiSettings });
 registerOAuthRoutes(app, {
   ...authDeps,
   roles: roleResolver,

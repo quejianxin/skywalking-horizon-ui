@@ -1,4 +1,6 @@
-# Apache SkyWalking Horizon UI
+# PDA Horizon UI
+
+本仓库是 [Apache SkyWalking Horizon UI](https://github.com/apache/skywalking-horizon-ui) 的 PDA 交付分支，源码地址为 [quejianxin/skywalking-horizon-ui](https://github.com/quejianxin/skywalking-horizon-ui)。本地镜像使用 `pda-horizon-ui:local`；该名称不表示已发布到镜像仓库。
 
 <img src="https://skywalking.apache.org/assets/logo.svg" alt="SkyWalking logo" height="90px" align="right"/>
 
@@ -15,7 +17,7 @@ Horizon UI is the next-generation web UI for [Apache SkyWalking](https://github.
 - Captured-snapshot replay — every figure, map, trace/log list, and profiling result is frozen at read time and stamped "captured &lt;time&gt;" with a replay badge, so reopening a conversation replays the exact evidence offline instead of silently re-querying.
 - Guided root-cause analysis — built-in investigation playbooks (latency, error-rate/SLA, saturation, middleware, Kubernetes-workload, service-mesh) that walk the dependency topology and follow the cross-layer hierarchy down into the backing infrastructure.
 - Profiling only on your approval — when metrics and traces can't pinpoint a cause, the assistant proposes the flavor that fits the target (trace / async-profiler / pprof / eBPF / network) as a decision card; nothing runs until you approve it, and the analysis renders inline as the real flame graph, trace waterfall, or process graph.
-- Bring your own LLM — off by default, enabled via the `ai:` config block against any OpenAI-compatible endpoint or Amazon Bedrock, with the API key env-only and redacted from logs; access is RBAC-gated (`ai:read`), every data tool enforces the same read verbs the signed-in user already holds, and the assistant never changes configuration, rules, or dashboards.
+- 自带模型：支持 OpenAI 兼容接口或 Amazon Bedrock，默认关闭。配置 `HORIZON_AI_SETTINGS_FILE` 后可在管理页设置模型和密钥；密钥不回显，设置文件须持久化并限制访问。助手的数据访问受当前用户权限约束。
 
 ### MCP — bring your own agent
 
@@ -135,8 +137,8 @@ License headers and dependency licenses are enforced in CI via [skywalking-eyes]
 A multi-stage, multi-arch image (`linux/amd64`, `linux/arm64`) ships the BFF plus the static UI on `node` Alpine, runs as a non-root `horizon` user, exposes port `8081`, and mounts `/data` for state files. The Dockerfile builds `dist/` from source inside the image (no host pre-step); images are published to GHCR and Docker Hub per release.
 
 ```bash
-docker build -t horizon-ui:local .
-docker run --rm -p 8081:8081 -v "$PWD/horizon.yaml:/app/horizon.yaml:ro" horizon-ui:local
+docker build -t pda-horizon-ui:local .
+docker run --rm -p 8081:8081 -v "$PWD/horizon.yaml:/app/horizon.yaml:ro" pda-horizon-ui:local
 ```
 
 See [`docs/setup/container-image.md`](docs/setup/container-image.md) for image tags, env vars, mounting `horizon.yaml`, and a Kubernetes example.

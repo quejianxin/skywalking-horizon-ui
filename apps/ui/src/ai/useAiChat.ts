@@ -21,6 +21,7 @@
 // (bundled defaults or the operator's `ai.starters`).
 import { computed, ref, type ComputedRef, type Ref } from 'vue';
 import { useAuthStore } from '@/state/auth';
+import { isCurrentEpoch, onSessionReset, sessionEpoch } from '@/state/sessionReset';
 import { bff, type AiConfigResponse } from '@/api/client';
 import type { HistoryMode } from './historyStore';
 
@@ -38,21 +39,45 @@ function readHintSeen(): boolean {
 const openState = ref(false);
 const hintSeen = ref<boolean>(readHintSeen());
 const aiConfig = ref<AiConfigResponse | null>(null);
-let configLoading = false;
+const configFailed = ref(false);
+let configRevision = 0;
+let configController: AbortController | null = null;
+let pendingConfigRefresh: Promise<boolean> | null = null;
 
-/** Load `/api/ai/config` once per session (idempotent). Soft-fails to
- *  not-ready so a probe error just hides the launcher rather than throwing. */
-async function ensureConfig(): Promise<void> {
-  if (aiConfig.value || configLoading) return;
-  configLoading = true;
-  try {
-    aiConfig.value = await bff.ai.config();
-  } catch {
-    // Leave aiConfig null (launcher stays hidden) so a later probe — the auth
-    // watch, or the next mount — can retry after a transient / pre-auth failure.
-  } finally {
-    configLoading = false;
-  }
+onSessionReset(() => {
+  configController?.abort();
+  configController = null;
+  pendingConfigRefresh = null;
+  aiConfig.value = null;
+  configFailed.value = false;
+  openState.value = false;
+});
+
+export function refreshAiConfig(): Promise<boolean> {
+  if (!useAuthStore().isAuthenticated) return Promise.resolve(false);
+  const epoch = sessionEpoch();
+  const revision = ++configRevision;
+  configController?.abort();
+  const controller = new AbortController();
+  configController = controller;
+  const request = (async (): Promise<boolean> => {
+    const config = await bff.ai.config(controller.signal).catch(() => null);
+    if (!isCurrentEpoch(epoch)) return false;
+    if (revision !== configRevision) return pendingConfigRefresh ?? !configFailed.value;
+    configFailed.value = config === null;
+    if (config) aiConfig.value = config;
+    return config !== null;
+  })().finally(() => {
+    if (revision !== configRevision || !isCurrentEpoch(epoch)) return;
+    configController = null;
+    pendingConfigRefresh = null;
+  });
+  pendingConfigRefresh = request;
+  return request;
+}
+
+export function ensureAiConfig(): Promise<boolean> {
+  return pendingConfigRefresh ?? (aiConfig.value && !configFailed.value ? Promise.resolve(true) : refreshAiConfig());
 }
 
 // History persistence settings from the once-per-session config probe, null until it loads.
@@ -69,6 +94,8 @@ export interface AiChatController {
   /** Whether the assistant can actually chat (feature enabled + a usable
    *  provider). When false, the panel is read-only with a setup notice. */
   ready: ComputedRef<boolean>;
+  configFailed: ComputedRef<boolean>;
+  configLoaded: ComputedRef<boolean>;
   /** Whether the operator has enabled the AI feature at all (`ai.enabled`). */
   enabled: ComputedRef<boolean>;
   /** Whether to play the first-run attention nudge on the launcher. */
@@ -78,7 +105,7 @@ export interface AiChatController {
   /** Client history settings (mode + cap), null until config loads. */
   history: ComputedRef<AiConfigResponse['history'] | null>;
   /** Fetch the AI config once (call from the launcher on mount / auth change). */
-  ensureConfig: () => Promise<void>;
+  ensureConfig: () => Promise<boolean>;
   openPanel: () => void;
   closePanel: () => void;
   toggle: () => void;
@@ -96,6 +123,7 @@ export function useAiChat(): AiChatController {
   // setup notice.
   const available = computed<boolean>(() => auth.isAuthenticated);
   const ready = computed<boolean>(() => aiConfig.value?.ready ?? false);
+  const configLoaded = computed<boolean>(() => aiConfig.value !== null);
   const enabled = computed<boolean>(() => aiConfig.value?.enabled ?? false);
   // Only nudge with the first-run hint when the assistant actually works —
   // don't draw attention to a read-only, not-yet-configured panel.
@@ -125,5 +153,5 @@ export function useAiChat(): AiChatController {
     else openPanel();
   }
 
-  return { open: openState, available, ready, enabled, showHint, starters, history, ensureConfig, openPanel, closePanel, toggle, dismissHint };
+  return { open: openState, available, ready, configFailed: computed(() => configFailed.value), configLoaded, enabled, showHint, starters, history, ensureConfig: ensureAiConfig, openPanel, closePanel, toggle, dismissHint };
 }

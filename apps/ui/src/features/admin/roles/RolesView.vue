@@ -115,6 +115,7 @@ const MENU_GATES = computed<readonly MenuGate[]>(() => [
   { label: t('3D Infra Map setup'), verb: 'infra-3d-setup:read', covers: ['/admin/3d-map'] },
   { label: t('Global defaults'), verb: 'setup:read', covers: ['/admin/global-defaults'] },
   { label: t('Users'), verb: 'user:read', covers: ['/admin/users'] },
+  { label: t('AI assistant settings'), verb: 'ai-settings:read', covers: ['/admin/ai-settings'] },
   { label: t('Auth status'), verb: 'auth:read', covers: ['/admin/auth-status'] },
   { label: t('Login audit'), verb: 'audit:read', covers: ['/admin/audit'] },
   { label: t('Roles & permissions'), verb: 'role:read', covers: ['/admin/roles'] },
@@ -178,6 +179,8 @@ const VERB_LABELS = computed<Record<string, { label: string; hint?: string }>>((
   'ai-conversation:read':   { label: t('See AI agent conversations') },
   'source-map:write':       { label: t('Upload and remove source maps') },
   'ai:read':                { label: t('Use the AI assistant') },
+  'ai-settings:read':       { label: t('See the AI assistant settings') },
+  'ai-settings:write':      { label: t('Change the AI assistant provider, model and API key') },
   'mcp:read':               { label: t('Connect an external agent over MCP') },
   'alarm-rule:read':        { label: t('See alarm rules') },
   'alarm-rule:write':       { label: t('Edit alarm rules') },
@@ -341,9 +344,10 @@ const VERB_GROUPS = computed<VerbGroup[]>(() => [
     blurb: t('Sending a message to the assistant, and connecting an external agent over MCP. Each of their data tools re-checks the read permission the matching screen needs, so neither reads more than the signed-in user can. They are separate permissions because the assistant sends the conversation to the model this Horizon is configured with, while MCP leaves the model on the caller\'s side.'),
     scope: [
       { label: t('AI Assistant'), icon: '✧' },
+      { label: t('AI assistant settings'), icon: '⚙' },
       { label: t('MCP'), icon: '⌘' },
     ],
-    verbs: ['ai:read', 'mcp:read'],
+    verbs: ['ai:read', 'ai-settings:read', 'ai-settings:write', 'mcp:read'],
   },
   {
     title: t('Users & access admin'),

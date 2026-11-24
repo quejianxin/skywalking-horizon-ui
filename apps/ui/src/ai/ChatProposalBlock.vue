@@ -100,23 +100,24 @@ async function fireTask(s: ProposalSpec): Promise<{ ok: boolean; taskId?: string
 }
 
 async function approve(): Promise<void> {
+  if (busy.value) return;
+  const block = props.block;
+  const resolve = conv.captureProposal(block);
+  if (!resolve) return;
   busy.value = true;
   try {
-    const res = await fireTask(props.block.spec);
-    if (!res.ok) conv.resolveProposal(props.block, 'failed', { error: res.error ?? '' });
-    // A create that succeeded without returning an id leaves the task RUNNING on
-    // OAP, so failing the card would strand it (and async/pprof would then reject
-    // the retry as already-profiling). It stays approved, but unbound: `taskId`
-    // is the binding, and the card renders the caveat when there is none.
-    else conv.resolveProposal(props.block, 'approved', res.taskId ? { taskId: res.taskId } : undefined);
+    const res = await fireTask(block.spec);
+    if (!res.ok) resolve('failed', { error: res.error ?? '' });
+    // OAP 即使没返回任务 ID 也可能已启动任务；此时保留审批结果，但不绑定任务。
+    else resolve('approved', res.taskId ? { taskId: res.taskId } : undefined);
   } catch (e) {
-    conv.resolveProposal(props.block, 'failed', { error: e instanceof Error ? e.message : String(e) });
+    resolve('failed', { error: e instanceof Error ? e.message : String(e) });
   } finally {
     busy.value = false;
   }
 }
 function dismiss(): void {
-  conv.resolveProposal(props.block, 'dismissed');
+  if (!busy.value) conv.captureProposal(props.block)?.('dismissed');
 }
 
 // One whole sentence per type — interpolating a type name into a generic header

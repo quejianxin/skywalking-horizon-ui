@@ -17,14 +17,14 @@
 <!-- Docked slide-over drawer (non-blocking). Expand ⤢ → full-page /ai; ↗ → a new browser
      tab (hydrates from shared localStorage history). Mounted once in AppShell. -->
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import Icon from '@/components/icons/Icon.vue';
 import ChatTranscript from './ChatTranscript.vue';
 import ChatComposer from './ChatComposer.vue';
 import ChatScopeBar from './ChatScopeBar.vue';
-import { useAiChat } from './useAiChat';
+import { refreshAiConfig, useAiChat } from './useAiChat';
 import { useAiConversations } from './useAiConversations';
 import { useChatScroll } from './useChatScroll';
 
@@ -32,6 +32,13 @@ const { t } = useI18n({ useScope: 'global' });
 const router = useRouter();
 const chat = useAiChat();
 const conv = useAiConversations();
+const isChatVisible = computed(() => chat.ready.value && conv.historyReady.value);
+const canChat = computed(() => isChatVisible.value && !chat.configFailed.value);
+
+async function reloadAssistant(): Promise<void> {
+  if (await refreshAiConfig()) await conv.hydrate();
+}
+watch(chat.open, (open) => { if (open) void reloadAssistant(); });
 
 const messages = computed(() => conv.current.value?.messages ?? []);
 const body = ref<HTMLElement | null>(null);
@@ -44,7 +51,7 @@ useChatScroll({
 });
 
 function onSend(text: string): void {
-  void conv.send(text);
+  if (canChat.value) void conv.send(text);
 }
 function expand(): void {
   // Keep the stream running — the full-page view continues the same conversation.
@@ -152,14 +159,18 @@ onBeforeUnmount(() => {
             <span class="ai-drawer__sub">{{ t('Ask about your services, metrics, traces and logs') }}</span>
           </div>
           <div class="ai-drawer__acts">
-            <button type="button" class="ai-drawer__act" :aria-label="t('New chat')" :title="t('New chat')" @click="conv.newChat()"><Icon name="plus" :size="14" /></button>
+            <button type="button" class="ai-drawer__act" :disabled="!canChat" :aria-label="t('New chat')" :title="t('New chat')" @click="conv.newChat()"><Icon name="plus" :size="14" /></button>
             <button type="button" class="ai-drawer__act" :aria-label="t('Expand to full page')" :title="t('Expand to full page')" @click="expand"><Icon name="expand" :size="14" /></button>
             <button type="button" class="ai-drawer__act" :aria-label="t('Open in a new tab')" :title="t('Open in a new tab')" @click="openNewTab"><Icon name="external" :size="14" /></button>
             <button type="button" class="ai-drawer__act" :aria-label="t('Close')" :title="t('Close')" @click="closeDrawer()"><Icon name="close" :size="14" /></button>
           </div>
         </header>
 
-        <template v-if="chat.ready.value">
+        <div v-if="chat.configFailed.value" class="ai-drawer__scopebar" role="status">
+          {{ t('Could not load') }}
+          <button type="button" class="ai-drawer__act" @click="reloadAssistant">{{ t('Retry') }}</button>
+        </div>
+        <template v-if="isChatVisible">
           <div class="ai-drawer__scopebar"><ChatScopeBar /></div>
 
           <div ref="body" class="ai-drawer__body">
@@ -167,13 +178,12 @@ onBeforeUnmount(() => {
           </div>
 
           <footer class="ai-drawer__composer">
-            <ChatComposer :streaming="conv.streaming.value" @send="onSend" @stop="conv.stop()" />
+            <ChatComposer :disabled="!canChat" :streaming="conv.streaming.value" @send="onSend" @stop="conv.stop()" />
           </footer>
         </template>
 
-        <!-- Read-only setup state: the launcher shows for everyone, but the panel
-             can only chat once an admin has configured a model provider. -->
-        <div v-else class="ai-drawer__body ai-drawer__setup">
+        <div v-else-if="!chat.configFailed.value && (!chat.configLoaded.value || chat.ready.value)" class="ai-drawer__body ai-drawer__setup" role="status">{{ t('Loading…') }}</div>
+        <div v-else-if="!chat.configFailed.value" class="ai-drawer__body ai-drawer__setup">
           <span class="ai-drawer__setup-mark" aria-hidden="true"><Icon name="ai" :size="30" /></span>
           <h3 class="ai-drawer__setup-title">{{ t('The AI Assistant is not set up yet') }}</h3>
           <p class="ai-drawer__setup-text">

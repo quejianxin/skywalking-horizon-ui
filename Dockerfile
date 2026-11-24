@@ -23,7 +23,7 @@
 # arch (native on a matching runner, QEMU-emulated otherwise). A copy-in
 # image cannot do this from a single host.
 #
-#     docker build -t horizon-ui:local .          # single-arch dev build
+#     docker build -t pda-horizon-ui:local .      # 单架构本地构建
 #     docker buildx build --platform linux/amd64,linux/arm64 -t … --push .
 #
 # Trade-off: the build needs the network (`pnpm install`) — but only in the
@@ -46,7 +46,9 @@ RUN corepack enable && corepack prepare pnpm@10.33.2 --activate
 COPY . .
 
 RUN pnpm install --frozen-lockfile
-RUN pnpm package
+# UI 构建需要足够的 Node 堆；可通过构建参数按机器资源调整。
+ARG BUILD_NODE_HEAP_MB=4096
+RUN NODE_OPTIONS="--max-old-space-size=${BUILD_NODE_HEAP_MB}" pnpm package
 
 # ---- runtime stage: the shipped image — no toolchain, no network ----
 FROM node:24-alpine

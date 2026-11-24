@@ -50,6 +50,7 @@ import type {
 } from '@skywalking-horizon-ui/api-client';
 
 import { pushEvent } from '@/controls/eventLog';
+import { isCurrentEpoch, sessionEpoch } from '@/state/sessionReset';
 import { COLD_STAGE_HEADER, readColdStageHeader } from '@/controls/coldStage';
 import { currentLocale } from '@/i18n';
 import { describeRefusal, permissionDeniedOf, permissionDeniedText } from './permissionDenied';
@@ -108,6 +109,7 @@ import { ConfigsApi } from './scopes/configs';
 import { AdminAuditApi } from './scopes/admin-audit';
 import { AdminAuthApi } from './scopes/admin-auth';
 import { AdminUsersApi } from './scopes/admin-users';
+import { AdminAiSettingsApi } from './scopes/admin-ai-settings';
 import { TemplateSyncApi } from './scopes/template-sync';
 import { AiApi } from './scopes/ai';
 import type { AlarmOwner } from '@skywalking-horizon-ui/api-client';
@@ -887,6 +889,7 @@ export class BffClient {
      */
     signal?: AbortSignal,
   ): Promise<T> {
+    const epoch = sessionEpoch();
     // Cold-stage flag is per-request not per-call-site, so the
     // interceptor reads the persisted toggle here rather than every
     // sub-client having to forward it. OAP ignores it for non-BanyanDB.
@@ -954,8 +957,10 @@ export class BffClient {
       // re-auth dance. Logged AFTER the hook, not before: the hook ends the
       // session, which empties the event log — and this is the one line that
       // explains why everything else in the ticker just vanished.
-      this.on401?.();
-      pushEvent('api', 'info', `${method} ${path} · 401 (re-auth)`);
+      if (isCurrentEpoch(epoch) && !signal?.aborted) {
+        this.on401?.();
+        pushEvent('api', 'info', `${method} ${path} · 401 (re-auth)`);
+      }
       throw new BffApiError(401, 'unauthenticated', null, method, path);
     }
     if (!res.ok) {
@@ -1087,6 +1092,7 @@ export class BffClient {
   readonly adminAudit = new AdminAuditApi(this);
   readonly adminAuth = new AdminAuthApi(this);
   readonly adminUsers = new AdminUsersApi(this);
+  readonly adminAiSettings = new AdminAiSettingsApi(this);
   readonly templateSync = new TemplateSyncApi(this);
   readonly ai = new AiApi(this);
 }

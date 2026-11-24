@@ -327,6 +327,12 @@ const shellRoutes: RouteRecordRaw[] = [
     meta: { verb: 'audit:read' },
   },
   {
+    path: 'admin/ai-settings',
+    name: 'admin-ai-settings',
+    component: () => import('@/features/admin/ai-settings/AiSettingsView.vue'),
+    meta: { verb: 'ai-settings:read' },
+  },
+  {
     path: 'admin/roles',
     name: 'admin-roles',
     component: () => import('@/features/admin/roles/RolesView.vue'),

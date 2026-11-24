@@ -17,7 +17,7 @@
 <!-- Floating edge launcher: fixed, collapsed to a sparkle badge, expands on hover.
      Teleported to <body>. One-shot first-run nudge (reduced-motion aware). -->
 <script setup lang="ts">
-import { onMounted, watch } from 'vue';
+import { watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import Icon from '@/components/icons/Icon.vue';
 import { useAuthStore } from '@/state/auth';
@@ -29,22 +29,7 @@ const chat = useAiChat();
 const auth = useAuthStore();
 const conv = useAiConversations();
 
-// Probe the server AI config once authenticated (and re-probe after login) so
-// the launcher gates on `ready` + seeds the starters, then load history for the
-// current user. The component is always mounted in AppShell, so this fires
-// regardless of `available`.
-onMounted(() => {
-  if (auth.isAuthenticated) void chat.ensureConfig().then(() => conv.hydrate());
-});
-watch(
-  () => auth.isAuthenticated,
-  (yes) => {
-    // On login load the new user's history; on logout re-hydrate to owner '' so
-    // the in-memory list is cleared for the next user.
-    if (yes) void chat.ensureConfig().then(() => conv.hydrate());
-    else void conv.hydrate();
-  },
-);
+watch(() => auth.user, () => void conv.hydrate(), { immediate: true });
 </script>
 
 <template>

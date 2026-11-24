@@ -25,7 +25,7 @@
  * request is never handed a cookie.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import Fastify, { type FastifyInstance } from 'fastify';
 import cookie from '@fastify/cookie';
 import { configSchema, type HorizonConfig } from '../config/schema.js';
@@ -55,10 +55,10 @@ function liveStore(source: ConfigSource): SessionStore {
   return new SessionStore({ ttlMinutes: () => source.current.session.ttlMinutes });
 }
 
-async function buildApp(config: ConfigSource, sessions: SessionStore): Promise<FastifyInstance> {
+async function buildApp(config: ConfigSource, sessions: SessionStore, renewSession = true): Promise<FastifyInstance> {
   const app = Fastify();
   await app.register(cookie);
-  app.get('/whoami', { preHandler: requireAuth({ config, sessions }) }, async (req) => ({
+  app.get('/whoami', { preHandler: requireAuth({ config, sessions }, { renewSession }) }, async (req) => ({
     username: req.session?.username ?? null,
     roles: req.session?.roles ?? null,
   }));
@@ -90,6 +90,25 @@ function setCookieOf(headers: Record<string, unknown>): SetCookie | undefined {
 }
 
 describe('requireAuth — the sliding-cookie re-stamp', () => {
+  it('只读配置探针验证会话，但不重发 Cookie 或延长空闲期限', async () => {
+    const { source } = fakeConfig({ ttlMinutes: 15 });
+    const sessions = liveStore(source);
+    const app = await buildApp(source, sessions, false);
+    const { sid, lastSeenAt } = sessions.create('alice', ['admin']);
+    const call = () => app.inject({ method: 'GET', url: '/whoami', headers: { cookie: `horizon_sid=${sid}` } });
+    const now = vi.spyOn(Date, 'now').mockReturnValue(lastSeenAt + 60_000);
+    try {
+      const res = await call();
+      expect(res.statusCode).toBe(200);
+      expect(setCookieOf(res.headers)).toBeUndefined();
+      expect(sessions.get(sid)?.lastSeenAt).toBe(lastSeenAt);
+      now.mockReturnValue(lastSeenAt + 15 * 60_000 + 1);
+      expect((await call()).statusCode).toBe(401);
+    } finally {
+      now.mockRestore();
+      await app.close();
+    }
+  });
   it('re-stamps the session cookie on every authenticated request', async () => {
     const { source } = fakeConfig({ ttlMinutes: 15 });
     const sessions = new SessionStore({ ttlMinutes: 15 });

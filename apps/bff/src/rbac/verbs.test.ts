@@ -115,6 +115,12 @@ export const MATCHER_CASES: ReadonlyArray<[string, string, boolean]> = [
   ['metrics:*', 'metrics:read', true],
   ['metrics:read', 'metrics:read', true],
   // Wildcard-exempt: only a bare `*`, `admin`, or the verb itself.
+  ['*:read', 'ai-settings:read', false],
+  ['ai-settings:read', 'ai-settings:read', true],
+  ['*:write', 'ai-settings:write', false],
+  ['ai-settings:*', 'ai-settings:write', false],
+  ['ai-settings:write', 'ai-settings:write', true],
+  ['*', 'ai-settings:write', true],
   ['*:read', 'audit:read', false],
   ['audit:*', 'audit:read', false],
   ['audit:read', 'audit:read', true],
@@ -256,6 +262,6 @@ describe('wildcard-exempt verbs', () => {
   });
 
   it('keeps the exempt set small — every entry is a place the grammar stops being uniform', () => {
-    expect([...WILDCARD_EXEMPT_VERBS]).toEqual(['audit:read']);
+    expect([...WILDCARD_EXEMPT_VERBS]).toEqual(['audit:read', 'ai-settings:read', 'ai-settings:write']);
   });
 });

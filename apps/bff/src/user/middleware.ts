@@ -111,7 +111,7 @@ export function requireBrowserSession(req: FastifyRequest, reply: FastifyReply):
   return false;
 }
 
-export function requireAuth(deps: AuthDeps) {
+export function requireAuth(deps: AuthDeps, { renewSession = true } = {}) {
   return async function authPreHandler(req: FastifyRequest, reply: FastifyReply): Promise<void> {
     // A bearer token is the non-browser credential (scripts, CI, MCP clients).
     // It resolves to the same session shape a login produces, so it is checked
@@ -170,12 +170,13 @@ export function requireAuth(deps: AuthDeps) {
     if (!sid) {
       return void unauthenticated(deps, req, reply);
     }
-    const session = deps.sessions.touch(sid);
+    const session = renewSession ? deps.sessions.touch(sid) : deps.sessions.get(sid);
     if (!session) {
       return void unauthenticated(deps, req, reply);
     }
     req.session = session;
     req.authKind = 'session';
+    if (!renewSession) return;
     // Sliding session: touch() just slid the server-side TTL, so
     // re-stamp the cookie's maxAge to match. The cookie's expiry was
     // set only at login, so without this an actively-used session still

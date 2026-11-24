@@ -38,6 +38,21 @@ const AI_BEDROCK: AiConfig = {
   starters: [],
   history: { maxMb: 500 },
 };
+// 就绪判断与模型构建共用同一套区域解析，AWS 环境兜底只在测试内显式设置。
+function withoutAwsRegion<T>(run: () => T): T {
+  const region = process.env.AWS_REGION;
+  const defaultRegion = process.env.AWS_DEFAULT_REGION;
+  delete process.env.AWS_REGION;
+  delete process.env.AWS_DEFAULT_REGION;
+  try {
+    return run();
+  } finally {
+    if (region === undefined) delete process.env.AWS_REGION;
+    else process.env.AWS_REGION = region;
+    if (defaultRegion === undefined) delete process.env.AWS_DEFAULT_REGION;
+    else process.env.AWS_DEFAULT_REGION = defaultRegion;
+  }
+}
 const AI_OAI: AiConfig = {
   ...AI_BEDROCK,
   provider: 'openai-compatible',
@@ -68,9 +83,13 @@ describe('ai config schema', () => {
 });
 
 describe('centralCredentialsComplete', () => {
-  it('bedrock needs model + apiKey (region is optional — AWS env fallback)', () => {
-    expect(centralCredentialsComplete(AI_BEDROCK)).toBe(true);
-    expect(centralCredentialsComplete({ ...AI_BEDROCK, region: '' })).toBe(true);
+  it('bedrock needs model + apiKey, and a region from config or the AWS env', () => {
+    withoutAwsRegion(() => {
+      expect(centralCredentialsComplete(AI_BEDROCK)).toBe(true);
+      expect(centralCredentialsComplete({ ...AI_BEDROCK, region: '' })).toBe(false);
+      process.env.AWS_REGION = 'us-east-1';
+      expect(centralCredentialsComplete({ ...AI_BEDROCK, region: '' })).toBe(true);
+    });
     expect(centralCredentialsComplete({ ...AI_BEDROCK, apiKey: '' })).toBe(false);
     expect(centralCredentialsComplete({ ...AI_BEDROCK, model: '' })).toBe(false);
   });
