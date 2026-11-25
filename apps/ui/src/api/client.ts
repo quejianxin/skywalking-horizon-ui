@@ -110,6 +110,8 @@ import { AdminAuditApi } from './scopes/admin-audit';
 import { AdminAuthApi } from './scopes/admin-auth';
 import { AdminUsersApi } from './scopes/admin-users';
 import { AdminAiSettingsApi } from './scopes/admin-ai-settings';
+import { AdminLogSourcesApi } from './scopes/admin-log-sources';
+import { LogSearchApi } from './scopes/log-search';
 import { DiagnosisApi } from './scopes/diagnosis';
 import { TemplateSyncApi } from './scopes/template-sync';
 import { AiApi } from './scopes/ai';
@@ -123,6 +125,25 @@ export type {
 export type { ConsentRequest } from './scopes/oauth';
 export type { SsoProvider } from './scopes/oidc';
 export type { DiagnosisTraceBundle } from './scopes/diagnosis';
+export type {
+  LogSourceAuth,
+  LogSourceInput,
+  LogSourceList,
+  LogSourceTestResult,
+  LogSourceView,
+} from './scopes/admin-log-sources';
+export type {
+  EsLogRow,
+  EsLogSearchRequest,
+  EsLogSearchResponse,
+  EsLogSourceList,
+  EsLogSourceSummary,
+  EsLogTraceLinkRequest,
+  EsLogTraceLinkResponse,
+  LinkedTraceSummary,
+  LogEntity,
+  LogEntityKind,
+} from './scopes/log-search';
 
 // ── Wire types re-exported from @skywalking-horizon-ui/api-client ────
 // Re-exported so consumers can import everything from this module.
@@ -1095,6 +1116,8 @@ export class BffClient {
   readonly adminAuth = new AdminAuthApi(this);
   readonly adminUsers = new AdminUsersApi(this);
   readonly adminAiSettings = new AdminAiSettingsApi(this);
+  readonly adminLogSources = new AdminLogSourcesApi(this);
+  readonly logSearch = new LogSearchApi(this);
   readonly diagnosis = new DiagnosisApi(this);
   readonly templateSync = new TemplateSyncApi(this);
   readonly ai = new AiApi(this);

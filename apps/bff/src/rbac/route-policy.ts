@@ -371,6 +371,19 @@ export const ROUTE_POLICY: Record<string, RoutePolicy> = {
   // AI 助手模型配置。读接口只返回非敏感字段，写接口可更换密钥，故读写分权。
   'GET /api/admin/ai-settings':                    'ai-settings:read',
   'PUT /api/admin/ai-settings':                    'ai-settings:write',
+
+  // 日志数据源管理：读接口暴露集群地址与索引名，写接口可修改数据源配置。连接测试会用到已存凭据，归入写权限。
+  'GET /api/admin/log-sources':                    'log-source:read',
+  'POST /api/admin/log-sources':                   'log-source:write',
+  'PUT /api/admin/log-sources/:id':                'log-source:write',
+  'DELETE /api/admin/log-sources/:id':             'log-source:write',
+  'POST /api/admin/log-sources/:id/test':          'log-source:write',
+
+  // ES 日志检索与日志串联链路。查询能力本身与 OAP 日志页同属 `logs:read`；
+  // 都不按 OAP 服务归属，见 rbac/route-scope.ts。
+  'GET /api/logs/sources':                         'logs:read',
+  'POST /api/logs/search':                         'logs:read',
+  'POST /api/logs/trace-link':                     ['logs:read', 'traces:read'],
 };
 
 /**

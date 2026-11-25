@@ -53,6 +53,7 @@ import { registerTraceTagRoutes } from './http/query/trace-tag.js';
 import { registerZipkinRoutes } from './http/query/zipkin.js';
 import { registerTraceQLRoutes } from './http/query/traceql.js';
 import { registerLogRoute } from './http/query/log.js';
+import { registerLogSearchRoutes } from './http/query/log-search.js';
 import { registerEvaluationRecordRoute } from './http/query/evaluation-record.js';
 import { registerBrowserErrorsRoute } from './http/query/browser-errors.js';
 import { registerEventsRoute } from './http/query/events.js';
@@ -104,11 +105,13 @@ import { registerOverviewTemplatesAdminRoutes } from './http/admin/overview-temp
 import { registerAuthStatusRoutes } from './http/admin/auth-status.js';
 import { registerAdminUsersRoute } from './http/admin/users.js';
 import { registerAiSettingsAdminRoutes } from './http/admin/ai-settings.js';
+import { registerLogSourcesAdminRoutes } from './http/admin/log-sources.js';
 import { registerSourceMapRoutes } from './http/admin/source-maps.js';
 import { registerAuthHealthRoute } from './http/auth-health.js';
 import { registerColdStageHook } from './util/duration.js';
 // Logic / stores
 import { SourceMapStore } from './logic/browser-errors/store.js';
+import { LogSourceStore, parseLogSourceAllowlist } from './logs/sources.js';
 import { serviceLayerCatalog } from './logic/services/service-layer-catalog.js';
 import { HttpError } from './errors.js';
 import { logger, loggerOptions } from './logger.js';
@@ -274,6 +277,12 @@ const aiSettings = new AiSettingsStore({
   filePath: process.env.HORIZON_AI_SETTINGS_FILE ?? '',
   base: () => source.current.ai,
 });
+// 日志数据源：与 AI 设置同一类 0600 文件存储；未配置时整块只读，检索接口
+// 返回空数据源列表。
+const logSources = new LogSourceStore({
+  filePath: process.env.HORIZON_LOG_SOURCES_FILE ?? '',
+  allowedBaseUrls: parseLogSourceAllowlist(process.env.HORIZON_LOG_SOURCES_ALLOWED_BASE_URLS ?? ''),
+});
 // Wire-level OAP debug log (`debugLog` in horizon.yaml) — reads the live
 // config per call, so `enabled` / `file` / redaction all hot-reload.
 wireLog.init(() => source.current.debugLog);
@@ -396,6 +405,7 @@ registerTraceQLRoutes(app, {
   uiTemplateClient: () => buildOapClients(source.current).uiTemplate(),
 });
 registerLogRoute(app, { ...authDeps });
+registerLogSearchRoutes(app, { ...authDeps, store: logSources });
 registerEvaluationRecordRoute(app, { ...authDeps });
 registerBrowserErrorsRoute(app, { ...authDeps });
 registerEventsRoute(app, { ...authDeps });
@@ -423,6 +433,7 @@ registerAiRoutes(app, {
   settings: aiSettings,
 });
 registerAiSettingsAdminRoutes(app, { ...authDeps, settings: aiSettings });
+registerLogSourcesAdminRoutes(app, { ...authDeps, store: logSources });
 registerOAuthRoutes(app, {
   ...authDeps,
   roles: roleResolver,

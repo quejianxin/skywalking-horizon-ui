@@ -97,6 +97,12 @@ export const VERBS = {
    *  线程归因。只读；Trace 原始数据仍受 `traces:read` 约束。 */
   diagnosisRead: 'diagnosis:read',
 
+  /** 管理页 `/admin/log-sources`：Elasticsearch 日志数据源的读写。读权限会
+   *  暴露集群地址与索引名，写权限可改地址（连同已存凭据生效），因此与
+   *  `logs:read`（查日志）分开授权；两者都在 WILDCARD_EXEMPT_VERBS 中。 */
+  logSourceRead: 'log-source:read',
+  logSourceWrite: 'log-source:write',
+
   /** Connect an external agent over MCP. Separate from `ai:read` because the
    *  two differ in who runs the model: the assistant sends the conversation to
    *  the provider Horizon is configured with, while MCP leaves the model on
@@ -157,7 +163,13 @@ export const RESERVED_VERBS: readonly Verb[] = [
  * entry is a place the grammar stops being uniform, and that is only worth it
  * where a wildcard grant would leak something an operator would not expect.
  */
-export const WILDCARD_EXEMPT_VERBS: ReadonlySet<Verb> = new Set<Verb>(['audit:read', 'ai-settings:read', 'ai-settings:write']);
+export const WILDCARD_EXEMPT_VERBS: ReadonlySet<Verb> = new Set<Verb>([
+  'audit:read',
+  'ai-settings:read',
+  'ai-settings:write',
+  'log-source:read',
+  'log-source:write',
+]);
 
 /**
  * Verbs retired by the per-page Dashboard-setup split, mapped to what they

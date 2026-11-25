@@ -1,6 +1,6 @@
 # Admin Pages
 
-Three pages under `/admin/` surface authentication, user, and RBAC state for live verification. All three are dark, dense, design-token UIs — they look like the rest of Horizon, not a separate "settings" section.
+`/admin/` 下的页面用于核查认证、用户和角色权限，也用于管理 AI 助手和日志数据源。
 
 ## Login page
 
@@ -103,6 +103,14 @@ A red banner appears when `rbac.enabled: false` — the page warns that every au
 
 Read-only. To change roles, edit `rbac.roles` in `horizon.yaml`; hot-reload applies the change without restart, and the next refresh of this page reflects the new state.
 
+## 日志数据源
+
+**路径：** `/admin/log-sources`
+
+**权限：** `log-source:read` 查看；另有 `log-source:write` 才能新增、修改、测试和移除数据源。
+
+用 **管理 → Log sources** 配置日志检索使用的 Elasticsearch 数据源。连接参数、凭据处理和排障步骤见[日志检索](../operate/log-search.md)。
+
 ## Access summary
 
 | Page | Verb | Default role(s) granted |
@@ -117,6 +125,8 @@ Read-only. To change roles, edit `rbac.roles` in `horizon.yaml`; hot-reload appl
 | `/operate/ttl` | `ttl:read` | maintainer, operator, admin |
 | `/operate/config` | `config:read` | maintainer, operator, admin |
 | `/admin/3d-map` | `infra-3d-setup:read` | operator, admin |
+| `/admin/log-sources` | `log-source:read` / `log-source:write` | operator、admin |
+| `/admin/ai-settings` | `ai-settings:read` / `ai-settings:write` | admin |
 
 `auth:read`, `user:read`, `role:read` are **not** in any default role. Either grant them via a custom role:
 

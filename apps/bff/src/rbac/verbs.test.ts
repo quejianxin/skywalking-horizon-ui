@@ -262,6 +262,12 @@ describe('wildcard-exempt verbs', () => {
   });
 
   it('keeps the exempt set small — every entry is a place the grammar stops being uniform', () => {
-    expect([...WILDCARD_EXEMPT_VERBS]).toEqual(['audit:read', 'ai-settings:read', 'ai-settings:write']);
+    expect([...WILDCARD_EXEMPT_VERBS]).toEqual([
+      'audit:read',
+      'ai-settings:read',
+      'ai-settings:write',
+      'log-source:read',
+      'log-source:write',
+    ]);
   });
 });

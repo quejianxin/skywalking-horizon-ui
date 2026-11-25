@@ -136,6 +136,7 @@ The conversation VIEW relay holds the whole document before answering (gzip in m
 | | `trace-tag.ts` — tag key/value autocomplete |
 | | `traceql.ts` — every TraceQL datasource accepts `coldStage`, but only the OTLP one over BanyanDB honours it, and Horizon does not send it, so a cold OTLP trace does not open; a cold native or Zipkin trace must be read through the native or Zipkin route |
 | | `ai/` — the assistant's own reads |
+| | `log-search.ts` — Elasticsearch 自有时间范围；Trace 串联按 ID 查询，不传 `Duration`，使用 OAP 默认存储阶段 |
 
 **Adding a route means placing it in this table.** The default is the right-hand
 column: a route sends the flag only because its data is a trace, a log or a

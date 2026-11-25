@@ -144,6 +144,11 @@ export const ROUTE_SCOPE: Record<string, ScopeRule> = {
   },
   // A trace's logs come from every service it crossed, and none is named.
   'GET /api/trace/:traceId/logs': { handler: 'keeps only the rows of services the caller may read' },
+  // Elasticsearch rows carry whatever service field the deployment indexes, if
+  // any; nothing here names an OAP service, so the read is whole-deployment.
+  'GET /api/logs/sources': { limitedDenied: () => 'not_attributable_to_a_service' },
+  'POST /api/logs/search': { limitedDenied: () => 'not_attributable_to_a_service' },
+  'POST /api/logs/trace-link': { limitedDenied: () => 'not_attributable_to_a_service' },
   'GET /api/layer/:key/pod-logs/containers': { layer: true, ids: [{ childId: q('instance') }], requireService: true },
   'POST /api/layer/:key/pod-logs': { layer: true, ids: [{ childId: b('serviceInstanceId') }], requireService: true },
   // A record is one call from an application service to a GenAI provider.

@@ -107,6 +107,8 @@ export const BUILTIN_ROLES: Readonly<Record<string, string[]>> = {
     'infra-3d-setup:write',
     'alarm-rule:read',
     'diagnosis:read',
+    'log-source:read',
+    'log-source:write',
     'infra-3d:read',
     'rule:read',
     'rule:write',

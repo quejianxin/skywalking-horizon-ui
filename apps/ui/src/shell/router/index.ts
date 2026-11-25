@@ -153,6 +153,15 @@ const shellRoutes: RouteRecordRaw[] = [
   // OAP `getAlarm` proxy + background-traffic timeline + per-layer
   // grouping. Read-only; OAP auto-recovers, no acknowledge / silence.
   { path: 'alarms', name: 'alarms', component: () => import('@/features/alarms/AlarmsView.vue') },
+  // Elasticsearch 日志检索 — 跨层页面，不属于某个 OAP 服务，因此不走
+  // `layer/:layerKey` 路由。与 OAP 日志页同属 `logs:read`；数据源由管理页
+  // 配置，页面只从中挑一个。
+  {
+    path: 'logs',
+    name: 'log-search',
+    component: () => import('@/features/log-search/LogSearchView.vue'),
+    meta: { verb: 'logs:read' },
+  },
   // A named alarm page: the same view over the same alarms, arranged by that
   // page's pins. Moving between pages reuses the component instance, so the
   // view resets itself when `pageId` changes.
@@ -331,6 +340,12 @@ const shellRoutes: RouteRecordRaw[] = [
     name: 'admin-ai-settings',
     component: () => import('@/features/admin/ai-settings/AiSettingsView.vue'),
     meta: { verb: 'ai-settings:read' },
+  },
+  {
+    path: 'admin/log-sources',
+    name: 'admin-log-sources',
+    component: () => import('@/features/admin/log-sources/LogSourcesView.vue'),
+    meta: { verb: 'log-source:read' },
   },
   {
     path: 'admin/roles',

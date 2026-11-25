@@ -33,7 +33,7 @@ import {
 
 const CFG: DiagConfig = { url: 'http://diag.local:8080/', token: 'tok-1', timeoutMs: 5000 };
 
-const PAYLOADS: Record<string, unknown> = {
+const PAYLOADS: Record<string, object> = {
   summary: {
     traceId: 't1', traceMissing: false, note: '',
     entryCount: 2, databaseCount: 3, inferredCount: 1, lockWaitCount: 0, asyncCount: 1,

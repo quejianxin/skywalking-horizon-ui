@@ -24,7 +24,7 @@ Known verbs are grouped into areas:
 | `events:read` | Events popout on a service banner: that service's lifecycle events. |
 | `traces:read` | Traces tab on any layer, trace detail page. |
 | `diagnosis:read` | The **Diagnosis** button in a trace detail: rule findings, SQL aggregates, lock waits, async segments and thread attribution from the [diagnosis service](../setup/horizon-yaml.md#trace-diagnosis). Distinct from `traces:read` — a deployment can let a role read traces without it. When the service is not configured the grant opens nothing and the button is absent. |
-| `logs:read` | Logs tab on any layer, log detail page. |
+| `logs:read` | Logs tab on any layer, log detail page, and the **Log search** page (`/logs`) over the Elasticsearch log datasources. |
 | `browser-errors:read` | Browser Logs tab (BROWSER layer): list JS error logs, list source maps, resolve a stack. |
 | `ai-conversation:read` | AI agent conversations (AI_AGENT layer): list the conversations the AI Sessionizer pushed and open one. Distinct from `ai:read`, which is the AI assistant. |
 | `inspect:read` | The read-only inspect tools: Metrics Inspect (`/operate/inspect`), Trace Inspect (`/operate/trace-inspect`), Log Inspect (`/operate/log-inspect`). |
@@ -82,6 +82,10 @@ None of these is granted to `viewer` or `maintainer`. Those roles read the dashb
 | `role:write` | **Reserved** — role definitions are edited in `horizon.yaml`, not from the UI. |
 | `auth:read` | Auth Status admin page (`/admin/auth-status`) + LDAP probe. Also the data behind the Roles & Permissions board. |
 | `audit:read` | Login audit page (`/admin/audit`) — who signed in, when and from where. **Not granted by any wildcard**: only a bare `*`, the administrator role, or this verb by name. |
+| `ai-settings:read` | AI assistant admin page (`/admin/ai-settings`): the configured provider, model, endpoint and whether a key is stored — never the key itself. **Not granted by any wildcard.** |
+| `ai-settings:write` | AI assistant admin page: change the provider, model, endpoint and key, and clear a stored key. Separate from `ai-settings:read` because it can replace a credential. **Not granted by any wildcard.** |
+| `log-source:read` | 查看 [Log sources](../operate/log-search.md) 中的地址、索引和字段配置，不返回凭据。`*:read` 和 `log-source:*` 不授予此权限。 |
+| `log-source:write` | 与 `log-source:read` 一起授予新增、修改、测试和移除数据源。`*:write` 和 `log-source:*` 不授予此权限。 |
 
 ### Special
 
@@ -104,8 +108,8 @@ A user's grant string is matched against a required verb using these rules:
 |---|---|
 | `*` or `admin` | Any verb. |
 | `area:verb` (exact) | The exact required verb (case-sensitive). |
-| `area:*` | Any verb in that area, including sub-actions: `rule:*` matches `rule:read`, `rule:write`, `rule:write:structural`, `rule:delete`. The `*` is the whole second segment — `rule:*:anything` is not a narrower form of this, it is malformed, and grants nothing. |
-| `*:read` | The `read` action in any area: matches `metrics:read`, `alarms:read`, `cluster:read`, etc. Does **not** match `rule:write:structural` (the action is not `read`), and does **not** match `audit:read` — see below. |
+| `area:*` | Any verb in that area, including sub-actions: `rule:*` matches `rule:read`, `rule:write`, `rule:write:structural`, `rule:delete`. The `*` is the whole second segment — `rule:*:anything` is not a narrower form of this, it is malformed, and grants nothing. A wildcard-exempt verb in the area is the exception: `log-source:*` reaches neither `log-source:read` nor `log-source:write` — see below. |
+| `*:read` | The `read` action in any area: matches `metrics:read`, `alarms:read`, `cluster:read`, etc. Does **not** match `rule:write:structural` (the action is not `read`), and does **not** match a wildcard-exempt verb — `audit:read` and `ai-settings:read` among them, see below. |
 
 Effective verbs for a session are the **union** of all grants from all roles.
 
@@ -176,6 +180,7 @@ With a layer granted only in part, query a specific service of your own: a picke
 | Service hierarchy | `topology:read` | The focus service must be readable; related services in other layers are named, without metrics. |
 | Traces | `traces:read` | The SkyWalking trace list needs a picked, readable service, or an exact trace id, from a role that does not read every layer. A trace opened by id, and the Zipkin and TraceQL searches, are not narrowed. |
 | Logs, browser logs, pod logs | `logs:read`, `browser-errors:read` | A picked, readable service (and instance or endpoint, or a browser version or page path of one); pod logs per pod. Log tag autocomplete and source maps need the verb without `@`, and the Browser Logs page does not offer source maps to a role with `@`. |
+| Log search | `logs:read`；关联 Trace 另需 `traces:read` | 两个权限均须为不带 `@` 的全局权限。检索可访问所有获准的 [Elasticsearch 数据源](../operate/log-search.md)，不按 layer、group 或服务隔离。 |
 | Evaluation records | `logs:read` on VIRTUAL_GENAI and on the callers' layers | Each condition follows its own side's grant, as described above. |
 | Events | `events:read` | A named, readable service. |
 | Alarms, the alarm count, the Alarms widget | `alarms:read` | The alarms of readable services, as described above; alarm pages list only what their pins cover. |
@@ -219,6 +224,8 @@ alarm-setup:read, alarm-setup:write,
 infra-3d-setup:read, infra-3d-setup:write,
 setup:read, setup:write,
 alarm-rule:read,
+diagnosis:read,
+log-source:read, log-source:write,
 rule:read, rule:write, rule:write:structural, rule:delete,
 live-debug:read, live-debug:write,
 profile:enable
@@ -320,9 +327,9 @@ landingByRole:
   reviewer: /operate/cluster
 ```
 
-`*:read` grants every read except one — useful for review access without write capability.
+`*:read` grants every read except the ones a wildcard deliberately skips — useful for review access without write capability.
 
-**One read is not included: `audit:read`.** The login audit log holds who signed in, when, from where, and their verified email addresses, so a wildcard does not reach it. Only a bare `*`, the built-in **administrator** role, or the verb named explicitly grants it:
+**Some verbs are not included: `audit:read`, `ai-settings:read` / `ai-settings:write`, and `log-source:read` / `log-source:write`.** The login audit log holds who signed in, when, from where, and their verified email addresses. The AI settings page holds the model endpoint and API key. A log datasource holds an Elasticsearch address, an index pattern and, for some datasources, a stored credential. None of them is dashboard data, so no wildcard reaches them — not `*:read`, not `ai-settings:*`, not `log-source:*`. Only a bare `*`, the built-in **administrator** role, or the verb named explicitly grants them:
 
 ```yaml
 roles:

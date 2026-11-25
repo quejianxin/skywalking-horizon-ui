@@ -71,6 +71,8 @@ catalog:
         path: "/operate/traces"
       - name: "Logs"
         path: "/operate/logs"
+      - name: "Log Search"
+        path: "/operate/log-search"
       - name: "Browser Logs & Source Maps"
         path: "/operate/browser-source-maps"
       - name: "Alarms"

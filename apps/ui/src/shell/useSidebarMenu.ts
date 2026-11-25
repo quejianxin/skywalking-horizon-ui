@@ -120,6 +120,7 @@ export function useSidebarMenu() {
         { icon: 'metric', label: t('Metrics inspect'), to: '/operate/inspect', verb: 'inspect:read' },
         { icon: 'trace', label: t('Trace inspect'), to: '/operate/trace-inspect', verb: 'inspect:read' },
         { icon: 'log', label: t('Log inspect'), to: '/operate/log-inspect', verb: 'inspect:read' },
+        { icon: 'log', label: t('Log search'), to: '/logs', verb: 'logs:read' },
       ],
     },
     {
@@ -141,6 +142,7 @@ export function useSidebarMenu() {
       kicker: t('Admin'),
       links: [
         { icon: 'ai', label: t('AI assistant'), to: '/admin/ai-settings', verb: 'ai-settings:read' },
+        { icon: 'db', label: t('Log sources'), to: '/admin/log-sources', verb: 'log-source:read' },
         { icon: 'user', label: t('Users'), to: '/admin/users', verb: 'user:read' },
         { icon: 'set', label: t('Auth status'), to: '/admin/auth-status', verb: 'auth:read' },
         { icon: 'set', label: t('Roles & permissions'), to: '/admin/roles', verb: 'role:read' },

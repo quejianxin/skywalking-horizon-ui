@@ -82,6 +82,8 @@ const GATES: ReadonlyArray<{ verb: string; rows: string[]; paths: string[] }> = 
   { verb: 'alarm-setup:read', rows: ['Alarm pages'], paths: ['/admin/alert-page-setup'] },
   { verb: 'setup:read', rows: ['Global defaults'], paths: ['/admin/global-defaults'] },
   { verb: 'ai-settings:read', rows: ['AI assistant settings'], paths: ['/admin/ai-settings'] },
+  { verb: 'log-source:read', rows: ['Log sources'], paths: ['/admin/log-sources'] },
+  { verb: 'logs:read', rows: ['Log search'], paths: ['/logs'] },
   { verb: 'user:read', rows: ['Users'], paths: ['/admin/users'] },
   { verb: 'auth:read', rows: ['Auth status'], paths: ['/admin/auth-status'] },
   { verb: 'role:read', rows: ['Roles & permissions'], paths: ['/admin/roles'] },
