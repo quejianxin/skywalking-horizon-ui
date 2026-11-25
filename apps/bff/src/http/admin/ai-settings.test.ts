@@ -133,7 +133,30 @@ describe('AI 管理设置接口', () => {
     });
     expect(put.statusCode).toBe(400);
     expect(put.json()).toMatchObject({ code: 'BAD_AI_SETTINGS' });
+    // 拒绝信息要能直接照做：列出已批准的地址，而不是只报环境变量名。
+    expect(put.json().message).toContain('已批准的地址');
+    expect(put.json().message).toContain(input.baseUrl);
+    expect(put.json().details).toEqual([
+      { path: 'baseUrl', message: expect.stringContaining('未获部署方批准'), approvedBaseUrls: [input.baseUrl] },
+    ]);
     expect(existsSync(filePath)).toBe(false);
+  });
+
+  it('名单为空时提示部署方尚未放行任何地址', async () => {
+    vi.stubEnv('HORIZON_AI_ALLOWED_BASE_URLS', '');
+    const { app, sessions } = await buildApp();
+    const put = await app.inject({
+      method: 'PUT',
+      url: URL,
+      headers: sessionCookie(sessions, 'writer'),
+      payload: input,
+    });
+    expect(put.statusCode).toBe(400);
+    expect(put.json().message).toContain('未批准任何模型地址');
+    expect(put.json().message).toContain('HORIZON_AI_ALLOWED_BASE_URLS');
+    expect(put.json().details).toEqual([
+      { path: 'baseUrl', message: expect.stringContaining('未获部署方批准'), approvedBaseUrls: [] },
+    ]);
   });
 
   it('未配置设置文件时可读取但不可写入', async () => {

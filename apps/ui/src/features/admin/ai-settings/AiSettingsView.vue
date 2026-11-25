@@ -17,7 +17,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { bff } from '@/api/client';
+import { bff, describeApiError } from '@/api/client';
 import type { AiAdminSettings } from '@/api/scopes/admin-ai-settings';
 import { useAuthStore } from '@/state/auth';
 import { refreshAiConfig } from '@/ai/useAiChat';
@@ -60,7 +60,7 @@ async function load(): Promise<void> {
     apply(await bff.adminAiSettings.get());
     loadError.value = null;
   } catch (err) {
-    loadError.value = err instanceof Error ? err.message : String(err);
+    loadError.value = describeApiError(err);
   } finally {
     loading.value = false;
   }
@@ -108,6 +108,19 @@ const modelPlaceholder = computed(() =>
 const baseUrlPlaceholder = computed(() =>
   draft.provider === 'anthropic' ? 'https://api.anthropic.com' : 'https://api.openai.com/v1',
 );
+// 名单来自部署方环境变量，保存时服务端会再校验一次；这里提前展示，避免填完才报错。
+const approvedBaseUrlHint = computed(() => {
+  const approved = loaded.value?.approvedBaseUrls ?? [];
+  return approved.length === 0
+    ? t('This deployment has not approved any model endpoint, so saving fails. Ask the deployment owner to add one to HORIZON_AI_ALLOWED_BASE_URLS.')
+    : t('Approved endpoints: {urls}', { urls: approved.join(', ') });
+});
+const approvedRegionHint = computed(() => {
+  const approved = loaded.value?.approvedRegions ?? [];
+  return approved.length === 0
+    ? t('This deployment has not approved any Bedrock region.')
+    : t('Approved regions: {regions}', { regions: approved.join(', ') });
+});
 const missingModel = computed(() => draft.enabled && draft.model.trim() === '');
 const canSave = computed(
   () => !readOnly.value && !saving.value && dirty.value && !missingBaseUrl.value && !missingModel.value,
@@ -132,7 +145,7 @@ async function save(): Promise<void> {
     const refreshed = await refreshAiConfig();
     flash.value = refreshed ? t('Saved.') : t('Saved, but the assistant status could not be refreshed. Reopen the assistant to retry.');
   } catch (err) {
-    saveError.value = err instanceof Error ? err.message : String(err);
+    saveError.value = describeApiError(err);
   } finally {
     saving.value = false;
   }
@@ -210,6 +223,7 @@ async function save(): Promise<void> {
           />
           <span v-if="missingBaseUrl" class="ai__hint ai__hint--err">{{ t('Base URL is required for the openai-compatible provider.') }}</span>
           <span v-else-if="draft.provider === 'anthropic'" class="ai__hint">{{ t('Leave blank to call the official Anthropic API. Enter a base URL only for an approved gateway.') }}</span>
+          <span v-else class="ai__hint">{{ approvedBaseUrlHint }}</span>
         </label>
 
         <label v-if="draft.provider === 'bedrock'" class="ai__row">
@@ -223,6 +237,7 @@ async function save(): Promise<void> {
             placeholder="us-west-2"
           />
           <span class="ai__hint">{{ t('Leave blank to read the region from AWS_REGION or AWS_DEFAULT_REGION.') }}</span>
+          <span class="ai__hint">{{ approvedRegionHint }}</span>
         </label>
 
         <div class="ai__row">

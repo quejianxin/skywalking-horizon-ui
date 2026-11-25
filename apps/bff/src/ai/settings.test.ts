@@ -218,6 +218,14 @@ describe('AiSettingsStore', () => {
       expect(restarted.save({ ...settings, apiKey: undefined })).toMatchObject({ region: 'us-east-1', ready: false, hasApiKey: false });
     });
 
+    it('为管理页列出部署方批准的地址与区域，且不含密钥', () => {
+      const store = new AiSettingsStore({ filePath, base: () => baseConfig() });
+
+      expect(store.view().approvedBaseUrls).toEqual([BASE_URL, APPROVED_URL, SECOND_URL].sort());
+      expect(store.view().approvedRegions).toEqual(['us-east-1', 'us-west-2']);
+      expect(store.view()).not.toHaveProperty('apiKey');
+    });
+
     it('does not expose credentials embedded in a base configuration URL', () => {
       const store = new AiSettingsStore({ filePath, base: () => baseConfig({ baseUrl: 'https://user:secret@example.test/v1?token=secret' }) });
       expect(store.view().baseUrl).toBe('');

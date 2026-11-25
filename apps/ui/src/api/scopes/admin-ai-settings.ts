@@ -31,6 +31,10 @@ export interface AiAdminSettings {
   writable: boolean;
   /** settings-file = 已保存；unset = 可写但尚未保存；environment = 只读环境配置。 */
   source: 'settings-file' | 'unset' | 'environment';
+  /** 部署方批准的模型基础地址；空数组表示未放行任何地址。 */
+  approvedBaseUrls: string[];
+  /** 部署方批准的 Bedrock 区域。 */
+  approvedRegions: string[];
 }
 
 export interface AiAdminSettingsInput {

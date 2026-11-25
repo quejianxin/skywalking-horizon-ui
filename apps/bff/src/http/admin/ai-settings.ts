@@ -31,12 +31,38 @@ import {
   AiSettingsNotWritableError,
   aiSettingsInputSchema,
   type AiSettingsStore,
+  type AiSettingsView,
 } from '../../ai/settings.js';
 import { AiConfigError } from '../../ai/model-outbound.js';
 import { logger } from '../../logger.js';
 
 export interface AiSettingsRouteDeps extends AuthDeps {
   settings: AiSettingsStore;
+}
+
+/**
+ * 出站名单拒绝要给出可执行提示：列出已批准目标，名单为空时说明该改哪个环境变量。
+ * 仅 baseUrl / region 两类错误附带名单，模型与密钥错误保持原文。
+ */
+function describeConfigError(err: AiConfigError, view: AiSettingsView): { message: string; details: Array<Record<string, unknown>> } {
+  if (err.field !== 'baseUrl' && err.field !== 'region') {
+    return { message: err.message, details: [{ path: err.field, message: err.message }] };
+  }
+  const isRegion = err.field === 'region';
+  const approved = isRegion ? view.approvedRegions : view.approvedBaseUrls;
+  const hint = approved.length === 0
+    ? (isRegion
+      ? '部署方未批准任何 Bedrock 区域：请让部署方把区域写入 HORIZON_AI_ALLOWED_BEDROCK_REGIONS 后重启 Horizon。'
+      : '部署方未批准任何模型地址：请让部署方把完整 API 基础地址（例如 https://api.deepseek.com，而不是控制台页面）写入 HORIZON_AI_ALLOWED_BASE_URLS 后重启 Horizon。')
+    : `已批准的${isRegion ? '区域' : '地址'}：${approved.join('、')}。请改用其中之一，或让部署方加入名单后重启 Horizon。`;
+  return {
+    message: `${err.message}。${hint}`,
+    details: [{
+      path: err.field,
+      message: err.message,
+      ...(isRegion ? { approvedRegions: approved } : { approvedBaseUrls: approved }),
+    }],
+  };
 }
 
 export function registerAiSettingsAdminRoutes(app: FastifyInstance, deps: AiSettingsRouteDeps): void {
@@ -84,8 +110,7 @@ export function registerAiSettingsAdminRoutes(app: FastifyInstance, deps: AiSett
         if (err instanceof AiConfigError) {
           return reply.code(400).send({
             code: 'BAD_AI_SETTINGS',
-            message: err.message,
-            details: [{ path: err.field, message: err.message }],
+            ...describeConfigError(err, deps.settings.view()),
           });
         }
         throw err;

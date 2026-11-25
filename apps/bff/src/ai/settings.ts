@@ -81,6 +81,10 @@ export interface AiSettingsView {
   writable: boolean;
   /** settings-file = 已有保存的文件；unset = 可写但尚未保存；environment = 只读环境配置。 */
   source: 'settings-file' | 'unset' | 'environment';
+  /** 部署方批准的模型基础地址；空数组表示未放行任何地址。 */
+  approvedBaseUrls: string[];
+  /** 部署方批准的 Bedrock 区域。 */
+  approvedRegions: string[];
 }
 
 export interface AiSettingsStoreDeps {
@@ -136,6 +140,7 @@ export class AiSettingsStore {
 
   view(): AiSettingsView {
     const ai = this.effective();
+    const approved = this.approvedOutbound();
     return {
       enabled: ai.enabled,
       provider: ai.provider,
@@ -147,6 +152,17 @@ export class AiSettingsStore {
       writable: this.writable,
       // 配置了设置文件即由该文件接管；文件尚未创建时环境配置也不会生效。
       source: this.overrides ? 'settings-file' : this.writable ? 'unset' : 'environment',
+      approvedBaseUrls: approved.baseUrls,
+      approvedRegions: approved.regions,
+    };
+  }
+
+  /** 管理页展示的批准名单，只读且不含密钥。 */
+  private approvedOutbound(): { baseUrls: string[]; regions: string[] } {
+    const policy = this.outboundPolicy;
+    return {
+      baseUrls: policy ? [...policy.baseUrls].sort() : [],
+      regions: policy ? [...policy.regions].sort() : [],
     };
   }
 
