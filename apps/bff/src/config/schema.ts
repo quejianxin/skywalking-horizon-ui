@@ -18,6 +18,7 @@
 import { z } from 'zod';
 import { isIP } from 'node:net';
 import { auditSchema } from './audit.js';
+import { diagnosisSchema } from './diagnosis.js';
 export { isHttpsOrLoopback, isLoopbackHostname } from '../util/loopback.js';
 import { isHttpsOrLoopback } from '../util/loopback.js';
 import { BUILTIN_ROLES, BUILTIN_LANDING_BY_ROLE } from './builtin-roles.js';
@@ -987,6 +988,7 @@ export const configSchema = z
     query: querySchema,
     sourceMaps: sourceMapsSchema,
     ai: aiSchema,
+    diagnosis: diagnosisSchema,
     mcp: mcpSchema,
     oauth: oauthSchema,
     audit: auditSchema,

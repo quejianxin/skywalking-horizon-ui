@@ -347,6 +347,10 @@ export const ROUTE_POLICY: Record<string, RoutePolicy> = {
   'GET /api/admin/alarm-rules/:id':                'alarm-rule:read',
   'GET /api/admin/alarm-rules/:id/context':        'alarm-rule:read',
 
+  // 诊断服务：Trace 之上的推断结果，只读。Trace 本身仍走原生 trace 路由。
+  'GET /api/diagnosis/status':                     'diagnosis:read',
+  'GET /api/diagnosis/traces/:traceId':            'diagnosis:read',
+
   'POST /api/layer/:key/profile/tasks':            'profile:enable',
   'POST /api/layer/:key/async/tasks':              'profile:enable',
   'POST /api/layer/:key/pprof/tasks':              'profile:enable',

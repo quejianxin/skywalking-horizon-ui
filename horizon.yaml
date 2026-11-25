@@ -110,6 +110,16 @@ oap:
   # HORIZON_OAP_AUTH='{"username":"skywalking","password":"skywalking"}'.
   auth: ${HORIZON_OAP_AUTH:null}
 
+# 诊断服务（可选）：在 SkyWalking Trace 之上做规则诊断、SQL 模板聚合、
+# 锁等待、异步时段与线程归因。Trace 列表 / 瀑布 / 日志 / 拓扑 / 告警仍由
+# OAP 与原生页面提供，这里只补 OAP 协议没有的跨 Span 推断。`url` 留空表示
+# 未部署，Horizon 隐藏 Trace 详情里的诊断入口；`token` 只在服务端使用，
+# 不返回浏览器，也不写日志。
+diagnosis:
+  url: "${HORIZON_DIAG_URL:}"
+  token: "${HORIZON_DIAG_TOKEN:}"
+  timeoutMs: ${HORIZON_DIAG_TIMEOUT_MS:15000}
+
 # Layers hidden from the sidebar even when OAP reports them. JSON array of
 # {key, reason}; `:null` keeps the built-in default (FAAS, VIRTUAL_GATEWAY, OTLP_VIRTUAL_GATEWAY).
 # HORIZON_LAYERS_EXCLUDED='[]' surfaces every reported layer.

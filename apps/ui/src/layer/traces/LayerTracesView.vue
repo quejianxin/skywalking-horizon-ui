@@ -49,6 +49,9 @@ import type {
   TraceQueryOrder,
   TraceQueryState,
 } from '@/api/client';
+import Icon from '@/components/icons/Icon.vue';
+import TraceDiagnosisPopout from '@/layer/traces/TraceDiagnosisPopout.vue';
+import { useDiagnosisGate } from '@/layer/traces/useDiagnosisGate';
 import { useEscapeToClose } from '@/components/primitives/useEscapeToClose';
 import { useLayerLanding } from '@/layer/useLayerLanding';
 import { useLayers } from '@/shell/useLayers';
@@ -535,6 +538,9 @@ function changeSelectedTraceId(id: string): void {
   embeddedSpans.value = null;
 }
 
+// 诊断入口挂在行内 Trace 详情上；开关见 useDiagnosisGate（探测同时承担授权）。
+const { enabled: diagnosisEnabled, open: diagnosisOpen } = useDiagnosisGate(selectedTraceId);
+
 const traceIdRef = computed(() => selectedTraceId.value);
 const { nativeDetail, isFetching: detailFetching } = useTraceDetail(traceIdRef, sourceRef, undefined, replay);
 // Spans fed to the shared detail card: list-embedded (`queryTraces`)
@@ -835,8 +841,13 @@ useEscapeToClose(() => selectedTraceId.value !== null, closeDetail);
         :replay="replay"
         @close="closeDetail"
         @change-trace-id="changeSelectedTraceId"
-      />
+      >
+        <template #actions>
+          <button v-if="diagnosisEnabled" class="sw-btn small ghost" type="button" :title="t('Rule findings, SQL, locks, async and threads for this trace')" @click="diagnosisOpen = true"><Icon name="flame" :size="12" />{{ t('Diagnosis') }}</button>
+        </template>
+      </TraceDetailCard>
     </section>
+    <TraceDiagnosisPopout :open="diagnosisOpen" :trace-id="selectedTraceId" @close="diagnosisOpen = false" />
   </div>
 </template>
 

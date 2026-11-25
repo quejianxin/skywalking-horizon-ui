@@ -155,6 +155,8 @@ watch(() => props.traceId, () => { openSpan.value = null; logsOpen.value = false
         </transition>
       </div>
       <div class="tr-detail-tools">
+        <!-- 视图自带的工具按钮（如诊断入口）由打开它的页面决定，卡片本身不挑数据源。 -->
+        <slot name="actions" />
         <span v-if="loading && spans.length === 0" class="hint">{{ t('loading spans…') }}</span>
         <button v-if="!replay && spans.length > 0" class="sw-btn small ghost logs-btn" type="button" :title="t('Logs carrying this trace id')" @click="logsOpen = true"><Icon name="log" :size="12" />{{ t('Logs') }}</button>
         <div class="view-toggle">

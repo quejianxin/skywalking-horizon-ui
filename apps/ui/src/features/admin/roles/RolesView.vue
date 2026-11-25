@@ -184,6 +184,7 @@ const VERB_LABELS = computed<Record<string, { label: string; hint?: string }>>((
   'mcp:read':               { label: t('Connect an external agent over MCP') },
   'alarm-rule:read':        { label: t('See alarm rules') },
   'alarm-rule:write':       { label: t('Edit alarm rules') },
+  'diagnosis:read':         { label: t('See trace diagnosis') },
   'alarm-setup:read':       { label: t('See the Alarm pages setup') },
   'alarm-setup:write':      { label: t('Create, edit and delete alarm pages') },
   'rule:read':              { label: t('See DSL / OAL / MQE rules') },
@@ -259,6 +260,14 @@ const VERB_GROUPS = computed<VerbGroup[]>(() => [
       { label: t('OAP configuration'), icon: '⚙' },
     ],
     verbs: ['cluster:read', 'inspect:read', 'ttl:read', 'config:read'],
+  },
+  {
+    title: t('Diagnosis'),
+    blurb: t('The rule findings, SQL aggregates, lock waits, async segments and thread attribution the diagnosis service adds to a trace.'),
+    scope: [
+      { label: t('Trace diagnosis'), icon: '↗' },
+    ],
+    verbs: ['diagnosis:read'],
   },
   {
     title: t('Browser monitoring'),

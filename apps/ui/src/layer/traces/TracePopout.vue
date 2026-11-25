@@ -44,6 +44,8 @@ import { componentIconOrNull } from '@/layer/service-map/useTopologyIcons';
 import { fmtMetric } from '@/utils/formatters';
 import { copyText } from '@/utils/clipboard';
 import TraceLogsPopout from '@/render/widgets/TraceLogsPopout.vue';
+import TraceDiagnosisPopout from './TraceDiagnosisPopout.vue';
+import { useDiagnosisGate } from './useDiagnosisGate';
 import SpanLogsButton from '@/render/widgets/SpanLogsButton.vue';
 import { useRevealHighlighted, useServiceFocus } from '@/render/widgets/useServiceFocus';
 import Icon from '@/components/icons/Icon.vue';
@@ -82,6 +84,9 @@ const selectedSpan = ref<NativeSpan | null>(null);
 // Which logs box is open: the trace's, or the selected span's.
 const logsOpen = ref<'trace' | 'span' | null>(null);
 watch([traceIdRef, selectedSpan], () => { logsOpen.value = null; });
+
+// 诊断入口的开关见 useDiagnosisGate（探测同时承担授权）。
+const { enabled: diagnosisEnabled, open: diagnosisOpen } = useDiagnosisGate(traceIdRef);
 watch([traceIdRef, spans], () => {
   selectedSpan.value = null;
   const segmentId = String(route.query[TRACE_POPOUT_SEGMENT] ?? '');
@@ -257,6 +262,7 @@ function nativeSpanError(s: NativeSpan): boolean { return s.isError; }
           <span v-if="isFetching && waterfall.length === 0" class="hint">{{ t('loading spans…') }}</span>
         </div>
         <button v-if="waterfall.length > 0" class="sw-btn small ghost logs-btn" type="button" :title="t('Logs carrying this trace id')" @click="logsOpen = 'trace'"><Icon name="log" :size="12" />{{ t('Logs') }}</button>
+        <button v-if="diagnosisEnabled && waterfall.length > 0" class="sw-btn small ghost" type="button" :title="t('Rule findings, SQL, locks, async and threads for this trace')" @click="diagnosisOpen = true"><Icon name="flame" :size="12" />{{ t('Diagnosis') }}</button>
         <button class="sw-btn small ghost" type="button" :title="t('Close')" @click="closeTrace">×</button>
       </header>
 
@@ -477,6 +483,7 @@ function nativeSpanError(s: NativeSpan): boolean { return s.isError; }
       :end-ms="lastEnd"
       @close="logsOpen = null"
     />
+    <TraceDiagnosisPopout :open="diagnosisOpen" :trace-id="openTraceId" @close="diagnosisOpen = false" />
   </div>
 </template>
 

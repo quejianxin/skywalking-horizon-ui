@@ -23,6 +23,7 @@ Known verbs are grouped into areas:
 | `alarms:read` | Alarms page and named alarm pages, alarm widgets on overviews. |
 | `events:read` | Events popout on a service banner: that service's lifecycle events. |
 | `traces:read` | Traces tab on any layer, trace detail page. |
+| `diagnosis:read` | The **Diagnosis** button in a trace detail: rule findings, SQL aggregates, lock waits, async segments and thread attribution from the [diagnosis service](../setup/horizon-yaml.md#trace-diagnosis). Distinct from `traces:read` — a deployment can let a role read traces without it. When the service is not configured the grant opens nothing and the button is absent. |
 | `logs:read` | Logs tab on any layer, log detail page. |
 | `browser-errors:read` | Browser Logs tab (BROWSER layer): list JS error logs, list source maps, resolve a stack. |
 | `ai-conversation:read` | AI agent conversations (AI_AGENT layer): list the conversations the AI Sessionizer pushed and open one. Distinct from `ai:read`, which is the AI assistant. |

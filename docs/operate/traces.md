@@ -251,6 +251,20 @@ rules:
 
 Keep the `if`: `traceId` sets the value even when the pattern did not match, and an empty value replaces a trace id a reporter had already set.
 
+## A trace's diagnosis
+
+A native trace's detail has a **Diagnosis** button when the deployment runs a diagnosis service — on the inline detail a row opens, and on the trace overlay a shared link opens. Where no service is configured, the button is absent. It opens a box over the trace listing what that service infers from the trace, which OAP's query protocol does not compute itself. Nothing is read until the box opens, and **Escape** closes it and leaves the trace as it was. Zipkin and TraceQL trace views carry no such button: they render other stores' traces, and the diagnosis service reads the native one.
+
+A strip of counts across the top summarises the trace: entry spans, database spans, inferred mounts, lock waits and async segments. Below it:
+
+- **Rule findings** — each conclusion with its rule id, a severity chip (critical, warning, or informational), the sentence explaining it, and the spans or tags it rests on. A note under the list says whether the model took part in the report or it was produced by the rules alone.
+- **SQL templates** — the trace's database statements folded to one row per template, with its count, total, shortest and longest duration, and the first five statements as samples.
+- **Lock waits** — each wait with its lock type, duration and session id. A wait confirmed from the trace's own spans is marked so; an inferred one is marked **unverified** and says what it rests on.
+- **Async segments** — producer-to-consumer segments with their enqueue, queue-wait and execute time, and whether the pairing was confirmed.
+- **Threads** — per service instance and thread: how many spans it ran, their total time, and the longest.
+
+The box is read-only and prints the service's own words. A service with no record of the trace says so instead of showing empty sections; a failed read shows the reason with a **Retry**. Reading it needs the `diagnosis:read` permission, separate from `traces:read` — without it the button does not appear. The service and its token are configured in [`horizon.yaml`](../setup/horizon-yaml.md#trace-diagnosis).
+
 ## Troubleshooting
 
 - **"No traces in window."** — the query ran but matched nothing. Widen the time range, relax the Status / Duration / Tag conditions, or confirm the service is actually reporting traces.

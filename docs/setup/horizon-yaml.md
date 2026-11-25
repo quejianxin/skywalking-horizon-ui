@@ -11,6 +11,7 @@ This page is the top-level map. Each subsection has its own detail page:
 | `security` | Which outbound link domains a dashboard template may point at. | [security](security.md) |
 | `audit` | Optional durable record of who signed in, when and from where. Off by default; Postgres-backed. | [login-audit](login-audit.md) |
 | `oap` | OAP query / admin / Zipkin URLs, timeouts, basic-auth, MQE override. | [oap](oap.md) |
+| `diagnosis` | Optional trace diagnosis service: rule findings, SQL aggregates, lock waits, async segments and thread attribution, shown in a trace detail. An empty URL turns the button off. | [below](#trace-diagnosis) |
 | `auth` | Active backend (local or LDAP), local users, LDAP binding, break-glass, single sign-on, API tokens. | [auth](auth.md) |
 | `rbac` | Role definitions, permission grants, landing route per role. | [rbac](rbac.md) |
 | `session` | Cookie name, TTL, secure flag. | [session](session.md) |
@@ -41,6 +42,8 @@ oap:
   timeoutMs?: number
   auth?: { username, password }
   mqe?: { host?, port? }
+
+diagnosis: { url?: string, token?: string, timeoutMs?: number }   # url = '' turns the trace Diagnosis button off
 
 auth:
   backend: local | ldap
@@ -107,6 +110,23 @@ The `ai` block's fields, env-var forms, and provider recipes are documented on [
 `ai` and `mcp` are independent. `ai` configures the model **this Horizon talks to** for its own assistant panel, and is off until you give it one. `mcp` lets an **external** agent — Claude Code, Codex, Claude Desktop — read this Horizon through the Model Context Protocol, with the model staying on the caller's side; it needs no provider and no key, so it is on by default. Turn it off with `enabled: false` (or `HORIZON_MCP_ENABLED=false`) and `POST /api/mcp` answers 503.
 
 `oauth` is a third, separate thing again: it makes Horizon an **authorization server** — the role Google plays when an application offers "Sign in with Google", except here Horizon is the one issuing and the login page shown is its own. It lets an MCP client send its operator through a browser login instead of being handed a token. It is off by default and needs two values to start — a public base URL (from `server.publicUrl`, or `oauth.issuer` to override it) and `signingKey`, a secret. Both are required: with either missing the server stays off and its endpoints answer 404, and a warning names what is missing at boot. See [MCP](../operate/mcp.md).
+
+## Trace diagnosis
+
+An optional companion service that reads a trace and answers what OAP's query protocol does not compute: rule findings, SQL template aggregates, lock waits, async segments and thread attribution. Horizon only calls it; the trace itself, its logs, its topology and its alarms stay with SkyWalking.
+
+```yaml
+diagnosis:
+  url: "${HORIZON_DIAG_URL:}"          # empty (the default) hides the trace Diagnosis button
+  token: "${HORIZON_DIAG_TOKEN:}"      # sent server-side as a bearer token, never to the browser
+  timeoutMs: 15000
+```
+
+- **`url`** — the diagnosis service's base URL. Empty or absent means the service is not deployed: every trace detail renders without the button, and the page never asks. A URL that is set but unreachable keeps the button — opening it reports the failure inside the panel, with a **Retry**.
+- **`token`** — bearer token for that service. It is used by Horizon's server only; the browser is told that the service is deployed, never its address or the token.
+- **`timeoutMs`** — how long one read may take before it is reported as failed. Default `15000`.
+
+The panel is a read over an already-loaded trace: nothing is read until it opens, and it needs the `diagnosis:read` permission. Without it the button does not appear. See [A trace's diagnosis](../operate/traces.md#a-traces-diagnosis) for what the panel shows.
 
 ## Environment variable interpolation
 

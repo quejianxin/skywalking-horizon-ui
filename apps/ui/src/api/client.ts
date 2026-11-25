@@ -110,6 +110,7 @@ import { AdminAuditApi } from './scopes/admin-audit';
 import { AdminAuthApi } from './scopes/admin-auth';
 import { AdminUsersApi } from './scopes/admin-users';
 import { AdminAiSettingsApi } from './scopes/admin-ai-settings';
+import { DiagnosisApi } from './scopes/diagnosis';
 import { TemplateSyncApi } from './scopes/template-sync';
 import { AiApi } from './scopes/ai';
 import type { AlarmOwner } from '@skywalking-horizon-ui/api-client';
@@ -121,6 +122,7 @@ export type {
 } from '@skywalking-horizon-ui/api-client';
 export type { ConsentRequest } from './scopes/oauth';
 export type { SsoProvider } from './scopes/oidc';
+export type { DiagnosisTraceBundle } from './scopes/diagnosis';
 
 // ── Wire types re-exported from @skywalking-horizon-ui/api-client ────
 // Re-exported so consumers can import everything from this module.
@@ -1093,6 +1095,7 @@ export class BffClient {
   readonly adminAuth = new AdminAuthApi(this);
   readonly adminUsers = new AdminUsersApi(this);
   readonly adminAiSettings = new AdminAiSettingsApi(this);
+  readonly diagnosis = new DiagnosisApi(this);
   readonly templateSync = new TemplateSyncApi(this);
   readonly ai = new AiApi(this);
 }

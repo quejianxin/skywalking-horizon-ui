@@ -93,6 +93,10 @@ export const VERBS = {
   aiSettingsRead: 'ai-settings:read',
   aiSettingsWrite: 'ai-settings:write',
 
+  /** 诊断服务：Trace 之上的规则诊断、SQL 模板聚合、锁等待、异步时段与
+   *  线程归因。只读；Trace 原始数据仍受 `traces:read` 约束。 */
+  diagnosisRead: 'diagnosis:read',
+
   /** Connect an external agent over MCP. Separate from `ai:read` because the
    *  two differ in who runs the model: the assistant sends the conversation to
    *  the provider Horizon is configured with, while MCP leaves the model on
